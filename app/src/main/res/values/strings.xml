@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Passwords</string>
+    <string name="scroll_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
+    <string name="settings">Settings</string>
+    <string name="add_password">Add Password</string>
+    <string name="auth_key_guard">Authentication</string>
+    <string name="auth_msg">Authenticate to use this app</string>
+    <string name="lock">Lock</string>
+    <string name="empty_pass_list">This space is too empty, want to spice it up?</string>
+    <string name="alias">Alias</string>
+    <string name="gen_password">Generate New Password</string>
+    <string name="submit">Submit</string>
+    <string name="password">Password</string>
+    <string name="digitz">Digitz</string>
+    <string name="special_characters">Special Characters</string>
+    <string name="alphabets">Alphabets</string>
+    <string name="set_password">Set Password</string>
+    <string name="hide">Hide Preferences</string>
+    <string name="password_length">Password Length</string>
+</resources>

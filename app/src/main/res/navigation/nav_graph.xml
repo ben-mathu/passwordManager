@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/fragment_auth">
+
+    <fragment
+        android:id="@+id/fragment_auth"
+        android:label="Authentication"
+        android:name="com.benatt.passwords.views.auth.AuthFragment"
+        tools:layout="@layout/fragment_auth">
+
+        <action
+            android:id="@+id/action_authentication_to_password_list"
+            app:destination="@+id/fragment_passwords"
+            app:launchSingleTop="true"
+            app:popUpTo="@navigation/nav_graph"
+            app:popUpToInclusive="true"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_passwords"
+        android:label="Saved Passwords"
+        android:name="com.benatt.passwords.views.passwords.PasswordsFragment"
+        tools:layout="@layout/fragment_passwords">
+
+        <action
+            android:id="@+id/action_passwords_to_add_password"
+            app:destination="@+id/fragment_add_password"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/fragment_passwords"
+            app:popUpToInclusive="true"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_add_password"
+        android:label="Add Password"
+        android:name="com.benatt.passwords.views.addpassword.AddPasswordFragment"
+        tools:layout="@layout/fragment_add_password"/>
+</navigation>
