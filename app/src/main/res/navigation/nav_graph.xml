@@ -37,5 +37,13 @@
         android:id="@+id/fragment_add_password"
         android:label="Add Password"
         android:name="com.benatt.passwords.views.addpassword.AddPasswordFragment"
-        tools:layout="@layout/fragment_add_password"/>
+        tools:layout="@layout/fragment_add_password">
+
+        <action
+            android:id="@+id/action_add_password_to_passwords"
+            app:destination="@id/fragment_passwords"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"/>
+    </fragment>
 </navigation>

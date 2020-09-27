@@ -13,6 +13,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavHost;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.benatt.passwords.MainApp;
 import com.benatt.passwords.R;
@@ -43,11 +44,11 @@ public class PasswordsFragment extends Fragment {
 
     private PasswordsAdapter adapter;
 
-    private KeyStore keyStore;
-
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onStart() {
+        super.onStart();
+
+        passwordsViewModel.getPasswords();
     }
 
     @Nullable
@@ -58,15 +59,18 @@ public class PasswordsFragment extends Fragment {
 
         passwordsViewModel = new ViewModelProvider(this, factory).get(PasswordsViewModel.class);
 
-        passwordsViewModel.refreshKeys();
         passwordsViewModel.msgEmpty.observe(getViewLifecycleOwner(), s -> {
             showMessage(s, binding.getRoot());
             binding.rvPasswordList.setVisibility(View.GONE);
             binding.llPlaceholder.setVisibility(View.VISIBLE);
         });
 
-        passwordsViewModel.keyAliases.observe(getViewLifecycleOwner(), keyAliases -> {
-            adapter = new PasswordsAdapter(keyAliases);
+        adapter = new PasswordsAdapter();
+        binding.rvPasswordList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        binding.rvPasswordList.setAdapter(adapter);
+
+        passwordsViewModel.passwords.observe(getViewLifecycleOwner(), passwords -> {
+            adapter.setPasswords(passwords);
         });
 
         binding.btnAddPassword.setOnClickListener(view -> {
@@ -81,5 +85,11 @@ public class PasswordsFragment extends Fragment {
         assert getActivity() != null;
         assert getActivity().getCurrentFocus() != null;
         Snackbar.make(rootView, s, Snackbar.LENGTH_SHORT);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        passwordsViewModel.unsubscribe();
     }
 }
