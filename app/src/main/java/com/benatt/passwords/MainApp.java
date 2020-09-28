@@ -14,7 +14,7 @@ import com.benatt.passwords.di.modules.DbModule;
 public class MainApp extends Application {
     public static final String TAG = MainApp.class.getSimpleName();
 
-    private SharedPreferences preferences;
+    private static SharedPreferences preferences;
 
     private PasswordsComponent passwordsComponent;
 
@@ -26,6 +26,10 @@ public class MainApp extends Application {
                 .build();
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+    }
+
+    public static SharedPreferences getPreferences() {
+        return preferences;
     }
 
     public PasswordsComponent getPasswordsComponent() {

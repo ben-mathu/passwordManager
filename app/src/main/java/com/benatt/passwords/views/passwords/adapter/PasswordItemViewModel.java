@@ -28,32 +28,9 @@ public class PasswordItemViewModel extends ViewModel {
 
     public MutableLiveData<String> passwordText = new MutableLiveData<>();
     public MutableLiveData<String> accountName = new MutableLiveData<>();
-    private SecretKey secretKey;
-
-    @Inject
-    public PasswordItemViewModel(SecretKey secretKey) {
-        this.secretKey = secretKey;
-    }
 
     public void bind(Password password) {
         passwordText.setValue("Password encrypted");
         accountName.setValue(password.getAccountName());
-    }
-
-    public void decrypt(String cipher) {
-
-        try {
-            Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-            GCMParameterSpec spec = new GCMParameterSpec(128, c.getIV());
-            c.init(Cipher.DECRYPT_MODE, secretKey, spec);
-
-            passwordText.setValue(new String(c.doFinal(cipher.getBytes()), StandardCharsets.UTF_8));
-        } catch (BadPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | InvalidKeyException | InvalidAlgorithmParameterException | NoSuchPaddingException e) {
-            Log.e(TAG, "decrypt: ", e);
-        }
-    }
-
-    public void hide() {
-        passwordText.setValue("Password hidden");
     }
 }

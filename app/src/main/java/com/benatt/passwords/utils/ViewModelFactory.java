@@ -48,10 +48,6 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
 
             AddPasswordViewModel addPasswordViewModel = new AddPasswordViewModel(secretKey, passwordRepository);
             return (T) addPasswordViewModel;
-        } else if (modelClass.isAssignableFrom(PasswordItemViewModel.class)) {
-
-            PasswordItemViewModel passwordItemViewModel = new PasswordItemViewModel(secretKey);
-            return (T) passwordItemViewModel;
         }
 
         throw new IllegalArgumentException("Unknown class");

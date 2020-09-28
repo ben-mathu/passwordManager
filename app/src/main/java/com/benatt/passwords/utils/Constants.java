@@ -10,4 +10,6 @@ public class Constants {
     public static final String KEY_STORE_KEY = "private_key";
 
     public static final String ALIAS = "vision";
+
+    public static final String INITIALIZATION_VECTOR = "initialization_vector";
 }

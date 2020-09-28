@@ -27,10 +27,7 @@
 
         <action
             android:id="@+id/action_passwords_to_add_password"
-            app:destination="@+id/fragment_add_password"
-            app:launchSingleTop="true"
-            app:popUpTo="@id/fragment_passwords"
-            app:popUpToInclusive="true"/>
+            app:destination="@+id/fragment_add_password"/>
     </fragment>
 
     <fragment
@@ -41,9 +38,6 @@
 
         <action
             android:id="@+id/action_add_password_to_passwords"
-            app:destination="@id/fragment_passwords"
-            app:launchSingleTop="true"
-            app:popUpTo="@id/nav_graph"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/fragment_passwords"/>
     </fragment>
 </navigation>

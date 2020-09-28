@@ -10,6 +10,7 @@ import com.benatt.passwords.data.models.passwords.PasswordRepository;
 import com.benatt.passwords.data.models.passwords.model.Password;
 import com.benatt.passwords.utils.Encryptor;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -68,7 +69,7 @@ public class AddPasswordViewModel extends ViewModel {
                                     Log.e(TAG, "savePassword: ", throwable);
                                 }
                         );
-            } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
+            } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | InvalidAlgorithmParameterException e) {
                 Log.e(TAG, "savePassword: Error", e);
             }
         }

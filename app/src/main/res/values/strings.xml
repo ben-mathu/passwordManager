@@ -20,4 +20,7 @@
     <string name="account_name">Account Name</string>
     <string name="decrypt">Decrypt</string>
     <string name="encrypt">Encrypt</string>
+    <string name="hide_password">Hide</string>
+    <string name="show_password">Show</string>
+    <string name="password_encrypted">Password Encrypted</string>
 </resources>
