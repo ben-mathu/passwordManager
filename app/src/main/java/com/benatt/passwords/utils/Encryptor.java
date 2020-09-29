@@ -1,6 +1,5 @@
 package com.benatt.passwords.utils;
 
-import android.os.Build;
 import android.util.Base64;
 
 import com.benatt.passwords.MainApp;
@@ -9,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 
 import javax.crypto.BadPaddingException;
@@ -18,7 +16,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 
 import static com.benatt.passwords.utils.Constants.INITIALIZATION_VECTOR;
 

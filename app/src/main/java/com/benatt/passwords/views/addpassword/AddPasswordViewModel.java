@@ -2,7 +2,6 @@ package com.benatt.passwords.views.addpassword;
 
 import android.util.Log;
 
-import androidx.arch.core.internal.SafeIterableMap;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -21,9 +20,7 @@ import javax.crypto.SecretKey;
 import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 /**

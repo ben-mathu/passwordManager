@@ -1,13 +1,10 @@
 package com.benatt.passwords.di.modules;
 
-import android.app.Application;
-import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Log;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -20,7 +17,6 @@ import java.util.Calendar;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.inject.Singleton;
-import javax.security.auth.x500.X500Principal;
 
 import dagger.Module;
 import dagger.Provides;

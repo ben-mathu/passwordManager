@@ -6,10 +6,6 @@ import androidx.lifecycle.ViewModel;
 import com.benatt.passwords.data.models.passwords.PasswordRepository;
 import com.benatt.passwords.data.models.passwords.model.Password;
 
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.crypto.SecretKey;

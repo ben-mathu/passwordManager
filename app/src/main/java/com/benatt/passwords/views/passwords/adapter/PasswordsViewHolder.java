@@ -9,7 +9,6 @@ import com.benatt.passwords.MainApp;
 import com.benatt.passwords.R;
 import com.benatt.passwords.data.models.passwords.model.Password;
 import com.benatt.passwords.databinding.PasswordItemBinding;
-import com.benatt.passwords.utils.Encryptor;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +19,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
-import java.security.spec.AlgorithmParameterSpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -28,8 +26,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
-import javax.inject.Inject;
 
 import static com.benatt.passwords.utils.Constants.ALIAS;
 import static com.benatt.passwords.utils.Constants.INITIALIZATION_VECTOR;

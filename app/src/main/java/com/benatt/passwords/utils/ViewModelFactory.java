@@ -9,9 +9,6 @@ import com.benatt.passwords.views.MainViewModel;
 import com.benatt.passwords.data.models.user.UserRepository;
 import com.benatt.passwords.views.addpassword.AddPasswordViewModel;
 import com.benatt.passwords.views.passwords.PasswordsViewModel;
-import com.benatt.passwords.views.passwords.adapter.PasswordItemViewModel;
-
-import java.security.KeyStore;
 
 import javax.crypto.SecretKey;
 import javax.inject.Inject;

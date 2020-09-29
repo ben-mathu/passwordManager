@@ -1,6 +1,5 @@
 package com.benatt.passwords.views;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
@@ -9,7 +8,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 
 import com.benatt.passwords.MainApp;
@@ -18,12 +16,6 @@ import com.benatt.passwords.databinding.ActivityMainBinding;
 import com.benatt.passwords.utils.ViewModelFactory;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.snackbar.Snackbar;
-
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
 
 import javax.inject.Inject;
 

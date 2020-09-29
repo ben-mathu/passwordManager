@@ -7,11 +7,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavHost;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -21,13 +18,6 @@ import com.benatt.passwords.databinding.FragmentPasswordsBinding;
 import com.benatt.passwords.utils.ViewModelFactory;
 import com.benatt.passwords.views.passwords.adapter.PasswordsAdapter;
 import com.google.android.material.snackbar.Snackbar;
-
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
 
 import javax.inject.Inject;
 
