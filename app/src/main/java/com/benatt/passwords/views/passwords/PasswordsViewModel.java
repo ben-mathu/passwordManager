@@ -3,42 +3,53 @@ package com.benatt.passwords.views.passwords;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.util.ArrayList;
-import java.util.Enumeration;
+import com.benatt.passwords.data.models.passwords.PasswordRepository;
+import com.benatt.passwords.data.models.passwords.model.Password;
+
 import java.util.List;
+
+import javax.crypto.SecretKey;
+import javax.inject.Inject;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * @author bernard
  */
 public class PasswordsViewModel extends ViewModel {
-    private KeyStore keyStore;
-    private List<String> aliases;
+    private SecretKey secretKey;
+    private PasswordRepository passwordRepository;
+
+    private Disposable disposable;
 
     MutableLiveData<String> msgEmpty = new MutableLiveData<>();
-    MutableLiveData<List<String>> keyAliases = new MutableLiveData<>();
+    MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
 
-    public PasswordsViewModel(KeyStore keyStore) {
-
-        this.keyStore = keyStore;
+    @Inject
+    public PasswordsViewModel(
+            SecretKey secretKey,
+            PasswordRepository passwordRepository) {
+        this.secretKey = secretKey;
+        this.passwordRepository = passwordRepository;
     }
 
-    public void refreshKeys() {
-        aliases = new ArrayList<>();
-        try {
-            Enumeration<String> aliasKeys = keyStore.aliases();
-            while (aliasKeys.hasMoreElements()) {
-                aliases.add(aliasKeys.nextElement());
-            }
+    public void getPasswords() {
+        disposable  = passwordRepository.getAll()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(passwordsList -> {
+                    if (passwordsList.isEmpty())
+                        msgEmpty.setValue("No saved passwords.");
+                    else
+                        passwords.setValue(passwordsList);
+                }, throwable -> msgEmpty.setValue("An error occurred."));
+    }
 
-            if (aliases.isEmpty()) {
-                msgEmpty.setValue("Empty List");
-            } else {
-                keyAliases.setValue(aliases);
-            }
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        }
+    public void unsubscribe() {
+        if (disposable != null)
+            if (!disposable.isDisposed())
+                disposable.dispose();
     }
 }

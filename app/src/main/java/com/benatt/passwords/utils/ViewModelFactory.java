@@ -4,13 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.benatt.passwords.data.models.passwords.PasswordRepository;
 import com.benatt.passwords.views.MainViewModel;
 import com.benatt.passwords.data.models.user.UserRepository;
 import com.benatt.passwords.views.addpassword.AddPasswordViewModel;
 import com.benatt.passwords.views.passwords.PasswordsViewModel;
 
-import java.security.KeyStore;
-
+import javax.crypto.SecretKey;
 import javax.inject.Inject;
 
 /**
@@ -18,13 +18,16 @@ import javax.inject.Inject;
  */
 public class ViewModelFactory implements ViewModelProvider.Factory {
     private UserRepository userRepository;
-    private KeyStore keyStore;
+    private SecretKey secretKey;
+    private PasswordRepository passwordRepository;
 
     @Inject
-    public ViewModelFactory(UserRepository userRepository,
-                            KeyStore keyStore) {
+    public ViewModelFactory(PasswordRepository passwordRepository,
+                            UserRepository userRepository,
+                            SecretKey secretKey) {
+        this.passwordRepository = passwordRepository;
         this.userRepository = userRepository;
-        this.keyStore = keyStore;
+        this.secretKey = secretKey;
     }
 
     @NonNull
@@ -36,10 +39,11 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
             return (T) viewModel;
         } else if (modelClass.isAssignableFrom(PasswordsViewModel.class)) {
 
-            PasswordsViewModel passwordsViewModel = new PasswordsViewModel(keyStore);
+            PasswordsViewModel passwordsViewModel = new PasswordsViewModel(secretKey, passwordRepository);
             return (T) passwordsViewModel;
         } else if (modelClass.isAssignableFrom(AddPasswordViewModel.class)) {
-            AddPasswordViewModel addPasswordViewModel = new AddPasswordViewModel(keyStore);
+
+            AddPasswordViewModel addPasswordViewModel = new AddPasswordViewModel(secretKey, passwordRepository);
             return (T) addPasswordViewModel;
         }
 

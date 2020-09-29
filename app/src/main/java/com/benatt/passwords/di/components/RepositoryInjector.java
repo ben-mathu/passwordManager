@@ -1,5 +1,6 @@
 package com.benatt.passwords.di.components;
 
+import com.benatt.passwords.data.models.passwords.PasswordRepository;
 import com.benatt.passwords.data.models.user.UserRepository;
 import com.benatt.passwords.di.modules.DbModule;
 
@@ -14,4 +15,5 @@ import dagger.Component;
 @Component(modules = {DbModule.class})
 public interface RepositoryInjector {
     void inject(UserRepository userRepo);
+    void inject(PasswordRepository passwordRepository);
 }
