@@ -23,4 +23,5 @@
     <string name="hide_password">Hide</string>
     <string name="show_password">Show</string>
     <string name="password_encrypted">Password Encrypted</string>
+    <string name="delete">Delete</string>
 </resources>

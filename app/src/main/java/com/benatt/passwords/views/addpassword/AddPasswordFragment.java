@@ -1,6 +1,7 @@
 package com.benatt.passwords.views.addpassword;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.benardmathu.tokengeneration.GenerateRandomString;
 import com.benatt.passwords.MainApp;
 import com.benatt.passwords.R;
+import com.benatt.passwords.data.models.passwords.model.Password;
 import com.benatt.passwords.databinding.FragmentAddPasswordBinding;
 import com.benatt.passwords.utils.ViewModelFactory;
 import com.google.android.material.snackbar.Snackbar;
@@ -22,6 +24,9 @@ import com.google.android.material.snackbar.Snackbar;
 import java.security.SecureRandom;
 
 import javax.inject.Inject;
+
+import static com.benatt.passwords.utils.Constants.EDIT_PASSWORD;
+import static com.benatt.passwords.utils.Decryptor.decryptPassword;
 
 /**
  * @author bernard
@@ -36,6 +41,21 @@ public class AddPasswordFragment extends Fragment {
     private boolean isShowingPrefs = false;
 
     private int passwordLength = 8;
+    private Password password;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        Bundle args = getArguments();
+        this.password = args.getParcelable(EDIT_PASSWORD);
+
+        if (password == null) {
+            this.password = new Password();
+            this.password.setAccountName("");
+            this.password.setCipher("");
+        }
+    }
 
     @Nullable
     @Override
@@ -44,6 +64,8 @@ public class AddPasswordFragment extends Fragment {
 
         binding = FragmentAddPasswordBinding.inflate(inflater, container, false);
         addPasswordViewModel = new ViewModelProvider(this, viewModelFactory).get(AddPasswordViewModel.class);
+
+        binding.edtAccountName.setText(password.getAccountName());
 
         binding.btnShowPrefs.setOnClickListener(view -> {
             if (isShowingPrefs) {
@@ -56,6 +78,20 @@ public class AddPasswordFragment extends Fragment {
                 isShowingPrefs = true;
             }
         });
+
+        if (password.isNotEmpty())
+            binding.btnDeletePassword.setVisibility(View.VISIBLE);
+        else
+            binding.btnDeletePassword.setVisibility(View.GONE);
+
+        binding.btnDeletePassword.setOnClickListener(view -> {
+            addPasswordViewModel.deletePassword(password);
+            NavHostFragment.findNavController(this).navigate(R.id.fragment_passwords);
+        });
+
+        String plainPassword = decryptPassword(password);
+        binding.edtPassword.setText(plainPassword);
+        binding.edtLength.setText(String.valueOf(plainPassword.length()));
 
         binding.btnSetPassword.setOnClickListener(view -> {
             binding.edtPassword.setText(generatePassword(view));

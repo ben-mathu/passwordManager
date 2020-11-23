@@ -19,8 +19,12 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.inject.Inject;
 
+import io.reactivex.CompletableObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -76,5 +80,22 @@ public class AddPasswordViewModel extends ViewModel {
         if (disposable != null)
             if (!disposable.isDisposed())
                 disposable.dispose();
+    }
+
+    public void deletePassword(Password password) {
+        disposable = passwordRepository.delete(password)
+                .subscribe(() -> {
+                    msgView.setValue(password.toString() + " has been deleted.");
+                    goToPasswordsFragments.setValue(true);
+                }, throwable -> msgView.setValue(password.toString() + " was not deleted."));
+    }
+
+    @Override
+    protected void onCleared() {
+        if (disposable != null)
+            if (!disposable.isDisposed())
+                disposable.dispose();
+
+        super.onCleared();
     }
 }
