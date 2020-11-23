@@ -1,6 +1,7 @@
 package com.benatt.passwords.data.models.passwords;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
@@ -9,7 +10,9 @@ import com.benatt.passwords.data.models.passwords.model.Password;
 
 import java.util.List;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /**
  * @author bernard
@@ -21,4 +24,7 @@ public interface PasswordDao {
 
     @Query("SELECT * FROM passwords")
     Observable<List<Password>> getAll();
+
+    @Delete
+    Completable delete(Password password);
 }

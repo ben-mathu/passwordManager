@@ -1,6 +1,7 @@
 package com.benatt.passwords.views.passwords;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.benatt.passwords.MainApp;
 import com.benatt.passwords.R;
+import com.benatt.passwords.data.models.passwords.model.Password;
 import com.benatt.passwords.databinding.FragmentPasswordsBinding;
 import com.benatt.passwords.utils.ViewModelFactory;
 import com.benatt.passwords.views.passwords.adapter.PasswordsAdapter;
@@ -21,10 +23,12 @@ import com.google.android.material.snackbar.Snackbar;
 
 import javax.inject.Inject;
 
+import static com.benatt.passwords.utils.Constants.EDIT_PASSWORD;
+
 /**
  * @author bernard
  */
-public class PasswordsFragment extends Fragment {
+public class PasswordsFragment extends Fragment implements OnItemClick {
     private PasswordsViewModel passwordsViewModel;
 
     @Inject
@@ -55,7 +59,7 @@ public class PasswordsFragment extends Fragment {
             binding.llPlaceholder.setVisibility(View.VISIBLE);
         });
 
-        adapter = new PasswordsAdapter();
+        adapter = new PasswordsAdapter(this);
         binding.rvPasswordList.setLayoutManager(new LinearLayoutManager(getActivity()));
         binding.rvPasswordList.setAdapter(adapter);
 
@@ -81,5 +85,12 @@ public class PasswordsFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         passwordsViewModel.unsubscribe();
+    }
+
+    @Override
+    public void onItemClick(Password password) {
+        Bundle args = new Bundle();
+        args.putParcelable(EDIT_PASSWORD, password);
+        NavHostFragment.findNavController(this).navigate(R.id.fragment_add_password, args);
     }
 }
