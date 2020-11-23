@@ -12,4 +12,8 @@ public class Constants {
     public static final String ALIAS = "vision";
 
     public static final String INITIALIZATION_VECTOR = "initialization_vector";
+
+    public static final String DELIMITER = ":";
+
+    public static final String EDIT_PASSWORD = "edit_password";
 }

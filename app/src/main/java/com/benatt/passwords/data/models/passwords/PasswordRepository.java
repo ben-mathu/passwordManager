@@ -7,14 +7,20 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * @author bernard
  */
 public class PasswordRepository extends Dao<Password> {
 
-    private PasswordDao passwordDao;
+    private final PasswordDao passwordDao;
 
     @Inject
     public PasswordRepository(PasswordDao passwordDao) {
@@ -32,5 +38,12 @@ public class PasswordRepository extends Dao<Password> {
     @Override
     public Observable<List<Password>> getAll() {
         return passwordDao.getAll();
+    }
+
+    @Override
+    public Completable delete(Password password) {
+        return passwordDao.delete(password)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io());
     }
 }

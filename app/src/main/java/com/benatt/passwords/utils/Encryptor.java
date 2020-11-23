@@ -17,6 +17,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
+import static com.benatt.passwords.utils.Constants.DELIMITER;
 import static com.benatt.passwords.utils.Constants.INITIALIZATION_VECTOR;
 
 /**
@@ -32,10 +33,10 @@ public class Encryptor {
 
         byte[] iv = cipher.getIV();
         String encodediv = Base64.encodeToString(iv, Base64.DEFAULT);
-        MainApp.getPreferences().edit()
-                .putString(INITIALIZATION_VECTOR, encodediv)
-                .apply();
-        return Base64.encodeToString(cipher.doFinal(password.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
+//        MainApp.getPreferences().edit()
+//                .putString(INITIALIZATION_VECTOR, encodediv)
+//                .apply();
+        return encodediv + DELIMITER + Base64.encodeToString(cipher.doFinal(password.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
     }
 
     public static AlgorithmParameterSpec getParameter(byte[] iv) {

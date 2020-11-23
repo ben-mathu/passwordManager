@@ -11,6 +11,7 @@ import com.benatt.passwords.R;
 import com.benatt.passwords.data.models.passwords.model.Password;
 import com.benatt.passwords.databinding.PasswordItemBinding;
 import com.benatt.passwords.utils.ViewModelFactory;
+import com.benatt.passwords.views.passwords.OnItemClick;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +29,10 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
     ViewModelFactory viewModelFactory;
 
     private PasswordItemViewModel passwordItemViewModel;
+    private final OnItemClick onItemClick;
 
-    public PasswordsAdapter() {
+    public PasswordsAdapter(OnItemClick onItemClick) {
+        this.onItemClick = onItemClick;
         passwords = new ArrayList<>();
     }
 
@@ -45,7 +48,7 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull PasswordsViewHolder holder, int position) {
-        holder.bind(passwords.get(position));
+        holder.bind(passwords.get(position), onItemClick);
     }
 
     @Override
