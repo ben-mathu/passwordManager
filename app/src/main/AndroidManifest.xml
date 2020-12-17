@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.benatt.passwords">
+    package="com.benatt.passwordsmanager">
 
     <application
         android:allowBackup="true"
@@ -9,8 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:name=".MainApp">
-        <activity android:name=".views.MainActivity">
+        android:name="com.benatt.passwordsmanager.MainApp">
+        <activity android:name="com.benatt.passwordsmanager.views.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

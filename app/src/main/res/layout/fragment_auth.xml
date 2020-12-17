@@ -3,10 +3,7 @@
     <data>
         <variable
             name="authViewModel"
-            type="com.benatt.passwords.views.auth.AuthViewModel" />
+            type="com.benatt.passwordsmanager.views.auth.AuthViewModel" />
     </data>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
 </layout>
