@@ -66,7 +66,7 @@ public class AddPasswordViewModel extends ViewModel {
                                     Log.e(TAG, "savePassword: ", throwable);
                                 }
                         );
-            } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+            } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
                 Log.e(TAG, "savePassword: Error", e);
             }
         }
