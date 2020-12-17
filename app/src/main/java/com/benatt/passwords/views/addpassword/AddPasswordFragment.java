@@ -48,7 +48,7 @@ public class AddPasswordFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         Bundle args = getArguments();
-        this.password = args.getParcelable(EDIT_PASSWORD);
+        this.password = args != null ? args.getParcelable(EDIT_PASSWORD) : null;
 
         if (password == null) {
             this.password = new Password();
@@ -93,19 +93,19 @@ public class AddPasswordFragment extends Fragment {
         binding.edtPassword.setText(plainPassword);
         binding.edtLength.setText(String.valueOf(plainPassword.length()));
 
-        binding.btnSetPassword.setOnClickListener(view -> {
-            binding.edtPassword.setText(generatePassword(view));
-        });
+        binding.btnSetPassword
+                .setOnClickListener(view -> binding.edtPassword.setText(generatePassword(view)));
 
         binding.btnSubmitPassword.setOnClickListener(view -> savePassword());
 
-        addPasswordViewModel.msgView.observe(getViewLifecycleOwner(), message -> {
-            showMessage(message, getActivity().getCurrentFocus());
-        });
+        addPasswordViewModel.msgView.observe(
+                getViewLifecycleOwner(),
+                message -> showMessage(message, getActivity().getCurrentFocus()));
 
-        addPasswordViewModel.goToPasswordsFragments.observe(getViewLifecycleOwner(), value -> {
-            NavHostFragment.findNavController(this).navigate(R.id.action_add_password_to_passwords);
-        });
+        addPasswordViewModel.goToPasswordsFragments.observe(
+                getViewLifecycleOwner(),
+                value -> NavHostFragment.findNavController(this)
+                        .navigate(R.id.action_add_password_to_passwords));
 
         binding.setAddPasswordViewModel(addPasswordViewModel);
         return binding.getRoot();
