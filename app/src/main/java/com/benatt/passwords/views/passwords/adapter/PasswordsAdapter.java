@@ -39,9 +39,8 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
     @NonNull
     @Override
     public PasswordsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        binding = DataBindingUtil.inflate(
+        binding = PasswordItemBinding.inflate(
                 LayoutInflater.from(parent.getContext()),
-                R.layout.password_item,
                 parent, false);
         return new PasswordsViewHolder(binding);
     }
