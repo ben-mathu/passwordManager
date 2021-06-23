@@ -99,7 +99,7 @@ public class AddPasswordFragment extends Fragment {
 
         addPasswordViewModel.msgView.observe(
                 getViewLifecycleOwner(),
-                message -> showMessage(message, getActivity().getCurrentFocus()));
+                message -> showMessage(message, getActivity().findViewById(android.R.id.content)));
 
         addPasswordViewModel.goToPasswordsFragments.observe(
                 getViewLifecycleOwner(),
