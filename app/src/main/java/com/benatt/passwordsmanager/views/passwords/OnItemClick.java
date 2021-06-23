@@ -7,4 +7,6 @@ import com.benatt.passwordsmanager.data.models.passwords.model.Password;
  */
 public interface OnItemClick {
     void onItemClick(Password password);
+
+    void startKeyguardActivity();
 }

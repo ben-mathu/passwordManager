@@ -1,5 +1,6 @@
 package com.benatt.passwordsmanager.views.passwords.adapter;
 
+import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -26,11 +27,15 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
     @Inject
     ViewModelFactory viewModelFactory;
 
+    private PasswordsViewHolder viewHolder;
+
     private PasswordItemViewModel passwordItemViewModel;
     private final OnItemClick onItemClick;
+    private Activity context;
 
-    public PasswordsAdapter(OnItemClick onItemClick) {
+    public PasswordsAdapter(OnItemClick onItemClick, Activity context) {
         this.onItemClick = onItemClick;
+        this.context = context;
         passwords = new ArrayList<>();
     }
 
@@ -40,7 +45,7 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
         binding = PasswordItemBinding.inflate(
                 LayoutInflater.from(parent.getContext()),
                 parent, false);
-        return new PasswordsViewHolder(binding);
+        return this.viewHolder = new PasswordsViewHolder(binding, context);
     }
 
     @Override
@@ -56,5 +61,9 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
     public void setPasswords(List<Password> passwords) {
         this.passwords = passwords;
         notifyDataSetChanged();
+    }
+
+    public void showPassword() {
+        this.viewHolder.getOnActivityResult().onResultReturned();
     }
 }

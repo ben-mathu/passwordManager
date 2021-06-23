@@ -1,5 +1,6 @@
 package com.benatt.passwordsmanager.views;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
@@ -7,8 +8,13 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
+import android.app.KeyguardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
+import android.widget.Toast;
 
 import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
@@ -19,17 +25,34 @@ import com.google.android.material.snackbar.Snackbar;
 
 import javax.inject.Inject;
 
+import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.RESULT_CODE;
+
 public class MainActivity extends AppCompatActivity {
     private MainViewModel mainViewModel;
 
     @Inject
     ViewModelFactory viewModelFactory;
 
+    private KeyguardManager keyguardManager;
+
     private ActivityMainBinding binding;
 
     private NavHostFragment navHost;
     private NavController navController;
     private BottomNavigationView bottomNav;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        this.keyguardManager = (KeyguardManager) this.getSystemService(Context.KEYGUARD_SERVICE);
+        if (!keyguardManager.isDeviceSecure()) {
+            Toast.makeText(this, "Please secure your device before using this app", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
+            startActivity(intent);
+            finish();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1,9 +1,13 @@
 package com.benatt.passwordsmanager.views.passwords;
 
+import android.app.KeyguardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,12 +26,16 @@ import com.google.android.material.snackbar.Snackbar;
 
 import javax.inject.Inject;
 
+import static android.app.Activity.RESULT_OK;
 import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
+import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.RESULT_CODE;
 
 /**
  * @author bernard
  */
 public class PasswordsFragment extends Fragment implements OnItemClick {
+    private static final String TAG = PasswordsFragment.class.getSimpleName();
+
     private PasswordsViewModel passwordsViewModel;
 
     @Inject
@@ -58,7 +66,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
             binding.llPlaceholder.setVisibility(View.VISIBLE);
         });
 
-        adapter = new PasswordsAdapter(this);
+        adapter = new PasswordsAdapter(this, getActivity());
         binding.rvPasswordList.setLayoutManager(new LinearLayoutManager(getActivity()));
         binding.rvPasswordList.setAdapter(adapter);
 
@@ -89,5 +97,26 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         Bundle args = new Bundle();
         args.putParcelable(EDIT_PASSWORD, password);
         NavHostFragment.findNavController(this).navigate(R.id.fragment_add_password, args);
+    }
+
+    @Override
+    public void startKeyguardActivity() {
+        KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+        if (keyguardManager.isKeyguardSecure()) {
+            Intent intent =  keyguardManager.createConfirmDeviceCredentialIntent(
+                    getActivity().getString(R.string.auth_key_guard),
+                    getActivity().getString(R.string.auth_msg)
+            );
+            startActivityForResult(intent, RESULT_CODE);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == RESULT_CODE) {
+            if (resultCode == RESULT_OK) {
+                adapter.showPassword();
+            }
+        }
     }
 }
