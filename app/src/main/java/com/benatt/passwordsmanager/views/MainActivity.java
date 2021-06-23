@@ -89,13 +89,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        int fragmentCount = getSupportFragmentManager().getBackStackEntryCount();
-
-        if (fragmentCount > 0) {
-            assert this.getCurrentFocus() != null;
-            Snackbar.make(binding.getRoot(), "Press Back Button Again.", Snackbar.LENGTH_SHORT);
-        } else {
-            super.onBackPressed();
-        }
+        super.onBackPressed();
+//        int fragmentCount = getSupportFragmentManager().getBackStackEntryCount();
+//
+//        if (fragmentCount > 0) {
+//            assert this.getCurrentFocus() != null;
+//            Snackbar.make(binding.getRoot(), "Press Back Button Again.", Snackbar.LENGTH_SHORT);
+//        } else {
+//            super.onBackPressed();
+//        }
     }
 }

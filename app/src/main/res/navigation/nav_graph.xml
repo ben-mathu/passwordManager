@@ -38,6 +38,9 @@
 
         <action
             android:id="@+id/action_add_password_to_passwords"
-            app:destination="@id/fragment_passwords"/>
+            app:destination="@id/fragment_passwords"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"/>
     </fragment>
 </navigation>
