@@ -1,5 +1,8 @@
 package com.benatt.passwordsmanager.views.passwords;
 
+import android.app.KeyguardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,18 +19,24 @@ import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.FragmentPasswordsBinding;
+import com.benatt.passwordsmanager.utils.OnActivityResult;
 import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.benatt.passwordsmanager.views.passwords.adapter.PasswordsAdapter;
 import com.google.android.material.snackbar.Snackbar;
 
 import javax.inject.Inject;
 
+import static android.app.Activity.RESULT_OK;
 import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
+import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.REQUEST_CODE;
 
 /**
  * @author bernard
  */
 public class PasswordsFragment extends Fragment implements OnItemClick {
+    private static final String TAG = PasswordsFragment.class.getSimpleName();
+    private static final String PASSWORD_POS = "position";
+
     private PasswordsViewModel passwordsViewModel;
 
     @Inject
@@ -36,6 +45,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     private FragmentPasswordsBinding binding;
 
     private PasswordsAdapter adapter;
+    private OnActivityResult onActivityResult;
 
     @Override
     public void onStart() {
@@ -58,7 +68,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
             binding.llPlaceholder.setVisibility(View.VISIBLE);
         });
 
-        adapter = new PasswordsAdapter(this);
+        adapter = new PasswordsAdapter(this, getActivity());
         binding.rvPasswordList.setLayoutManager(new LinearLayoutManager(getActivity()));
         binding.rvPasswordList.setAdapter(adapter);
 
@@ -89,5 +99,27 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         Bundle args = new Bundle();
         args.putParcelable(EDIT_PASSWORD, password);
         NavHostFragment.findNavController(this).navigate(R.id.fragment_add_password, args);
+    }
+
+    @Override
+    public void startKeyguardActivity(OnActivityResult onActivityResult) {
+        this.onActivityResult = onActivityResult;
+        KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+        if (keyguardManager.isKeyguardSecure()) {
+            Intent intent =  keyguardManager.createConfirmDeviceCredentialIntent(
+                    getActivity().getString(R.string.auth_key_guard),
+                    getActivity().getString(R.string.auth_msg)
+            );
+            startActivityForResult(intent, REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                this.onActivityResult.onResultReturned();
+            }
+        }
     }
 }
