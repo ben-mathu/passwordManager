@@ -1,6 +1,5 @@
 package com.benatt.passwordsmanager.views;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
@@ -21,11 +20,8 @@ import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
 import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.snackbar.Snackbar;
 
 import javax.inject.Inject;
-
-import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.RESULT_CODE;
 
 public class MainActivity extends AppCompatActivity {
     private MainViewModel mainViewModel;

@@ -24,6 +24,8 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
     private PasswordItemBinding binding;
     private List<Password> passwords;
 
+    private boolean isDecrypted = false;
+
     @Inject
     ViewModelFactory viewModelFactory;
 

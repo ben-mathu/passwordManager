@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,6 +19,7 @@ import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.FragmentPasswordsBinding;
+import com.benatt.passwordsmanager.utils.OnActivityResult;
 import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.benatt.passwordsmanager.views.passwords.adapter.PasswordsAdapter;
 import com.google.android.material.snackbar.Snackbar;
@@ -28,13 +28,14 @@ import javax.inject.Inject;
 
 import static android.app.Activity.RESULT_OK;
 import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
-import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.RESULT_CODE;
+import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.REQUEST_CODE;
 
 /**
  * @author bernard
  */
 public class PasswordsFragment extends Fragment implements OnItemClick {
     private static final String TAG = PasswordsFragment.class.getSimpleName();
+    private static final String PASSWORD_POS = "position";
 
     private PasswordsViewModel passwordsViewModel;
 
@@ -44,6 +45,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     private FragmentPasswordsBinding binding;
 
     private PasswordsAdapter adapter;
+    private OnActivityResult onActivityResult;
 
     @Override
     public void onStart() {
@@ -100,22 +102,23 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     }
 
     @Override
-    public void startKeyguardActivity() {
+    public void startKeyguardActivity(OnActivityResult onActivityResult) {
+        this.onActivityResult = onActivityResult;
         KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
         if (keyguardManager.isKeyguardSecure()) {
             Intent intent =  keyguardManager.createConfirmDeviceCredentialIntent(
                     getActivity().getString(R.string.auth_key_guard),
                     getActivity().getString(R.string.auth_msg)
             );
-            startActivityForResult(intent, RESULT_CODE);
+            startActivityForResult(intent, REQUEST_CODE);
         }
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == RESULT_CODE) {
+        if (requestCode == REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                adapter.showPassword();
+                this.onActivityResult.onResultReturned();
             }
         }
     }

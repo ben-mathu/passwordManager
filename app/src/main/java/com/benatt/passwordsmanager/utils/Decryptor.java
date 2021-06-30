@@ -1,3 +1,4 @@
+
 package com.benatt.passwordsmanager.utils;
 
 import android.util.Base64;
