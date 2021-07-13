@@ -9,7 +9,6 @@ import com.benatt.passwordsmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.utils.Encryptor;
 
-import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -19,7 +18,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.inject.Inject;
 
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -49,7 +47,7 @@ public class AddPasswordViewModel extends ViewModel {
     public void savePassword(Password password, String newPassword) {
         try {
             if (password != null) {
-                String cipher = Encryptor.encryptPassword(secretKey, newPassword);
+                String cipher = Encryptor.encrypt(secretKey, newPassword);
                 password.setCipher(cipher);
                 disposable = passwordRepository.save(password)
                         .observeOn(AndroidSchedulers.mainThread())
@@ -70,7 +68,7 @@ public class AddPasswordViewModel extends ViewModel {
                 else if (accountNameStr.isEmpty())
                     msgView.setValue("Please provide the account name");
                 else {
-                    String cipher = Encryptor.encryptPassword(secretKey, passwordStr);
+                    String cipher = Encryptor.encrypt(secretKey, passwordStr);
                     Password passwd = new Password();
                     passwd.setAccountName(accountNameStr);
                     passwd.setCipher(cipher);

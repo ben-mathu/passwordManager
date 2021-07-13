@@ -35,7 +35,7 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(MainViewModel.class)) {
 
-            MainViewModel viewModel = new MainViewModel(userRepository);
+            MainViewModel viewModel = new MainViewModel(userRepository, passwordRepository, secretKey);
             return (T) viewModel;
         } else if (modelClass.isAssignableFrom(PasswordsViewModel.class)) {
 

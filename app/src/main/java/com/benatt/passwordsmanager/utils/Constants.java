@@ -16,4 +16,6 @@ public class Constants {
     public static final String DELIMITER = ":";
 
     public static final String EDIT_PASSWORD = "edit_password";
+
+    public static final String BACKUP_DATE_FORMAT = "ddMMyyyyHHmmss";
 }

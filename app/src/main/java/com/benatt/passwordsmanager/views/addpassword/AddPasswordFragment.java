@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,13 +49,6 @@ public class AddPasswordFragment extends Fragment {
 
         Bundle args = getArguments();
         this.password = args != null ? args.getParcelable(EDIT_PASSWORD) : null;
-
-        if (password == null) {
-            this.password = new Password();
-            this.password.setAccountName("");
-            this.password.setCipher("");
-            binding.setPassword(password);
-        }
     }
 
     @Nullable
@@ -64,6 +58,13 @@ public class AddPasswordFragment extends Fragment {
 
         binding = FragmentAddPasswordBinding.inflate(inflater, container, false);
         addPasswordViewModel = new ViewModelProvider(this, viewModelFactory).get(AddPasswordViewModel.class);
+
+        if (password == null) {
+            this.password = new Password();
+            this.password.setAccountName("");
+            this.password.setCipher("");
+            binding.setPassword(password);
+        }
 
 //        binding.edtAccountName.setText(password.getAccountName());
 
@@ -133,6 +134,11 @@ public class AddPasswordFragment extends Fragment {
 
         if (!binding.edtLength.getText().toString().isEmpty())
             passwordLength = Integer.parseInt(binding.edtLength.getText().toString());
+
+        if (passwordLength <= 0) {
+            Toast.makeText(requireActivity(), "Password length cannot be less than or equal to 0", Toast.LENGTH_LONG).show();
+            return "";
+        }
 
         if (alphabets.isChecked() && !special.isChecked() && !digits.isChecked())
             randomString = new GenerateRandomString(

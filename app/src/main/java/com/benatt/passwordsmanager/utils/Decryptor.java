@@ -53,6 +53,8 @@ public class Decryptor {
                 actualCipher = cipherProps[1];
                 ivString = cipherProps[0];
             } else {
+                // for those passwords that used previous technique to encrypt passwords
+                // encryption used a static variable for the initialization vector
                 actualCipher = password.getCipher();
                 ivString = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
             }
