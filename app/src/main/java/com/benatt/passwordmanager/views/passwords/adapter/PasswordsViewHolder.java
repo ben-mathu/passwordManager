@@ -1,20 +1,19 @@
-package com.benatt.passwordsmanager.views.passwords.adapter;
+package com.benatt.passwordmanager.views.passwords.adapter;
 
 import android.app.Activity;
 import android.app.KeyguardManager;
-import android.content.Context;
-import android.content.Intent;
+import android.os.CountDownTimer;
+import android.util.Log;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.benatt.passwordsmanager.R;
-import com.benatt.passwordsmanager.data.models.passwords.model.Password;
-import com.benatt.passwordsmanager.databinding.PasswordItemBinding;
-import com.benatt.passwordsmanager.utils.OnActivityResult;
-import com.benatt.passwordsmanager.views.passwords.OnItemClick;
+import com.benatt.passwordmanager.R;
+import com.benatt.passwordmanager.data.models.passwords.model.Password;
+import com.benatt.passwordmanager.databinding.PasswordItemBinding;
+import com.benatt.passwordmanager.utils.OnActivityResult;
+import com.benatt.passwordmanager.views.passwords.OnItemClick;
 
-import static com.benatt.passwordsmanager.utils.Constants.DELIMITER;
-import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
+import static com.benatt.passwordmanager.utils.Decryptor.decryptPassword;
 
 /**
  * @author bernard
@@ -54,6 +53,9 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                         binding.passwordValue.setText(decryptPassword(password));
                         binding.btnDecrypt.setText(R.string.hide_password);
                         isDecrypted = true;
+
+
+                        startTimer();
                     }
                 });
             } else {
@@ -66,6 +68,22 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
         binding.getRoot().setOnClickListener(view -> onItemClick.onItemClick(password));
 
         passwordItemViewModel.bind(password);
+    }
+
+    private void startTimer() {
+        new CountDownTimer(10000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                Log.d(TAG, "onTick: Intentionally left blank");
+            }
+
+            @Override
+            public void onFinish() {
+                binding.passwordValue.setText(context.getString(R.string.password_encrypted));
+                binding.btnDecrypt.setText(context.getString(R.string.show_password));
+                isDecrypted = false;
+            }
+        }.start();
     }
 
     public OnActivityResult getOnActivityResult() {
