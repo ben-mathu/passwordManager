@@ -3,7 +3,7 @@
     <data>
         <variable
             name="mainViewModel"
-            type="com.benatt.passwordsmanager.views.MainViewModel" />
+            type="com.benatt.passwordmanager.views.MainViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

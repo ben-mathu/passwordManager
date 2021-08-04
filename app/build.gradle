@@ -5,7 +5,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.benatt.passwordsmanager"
+        applicationId "com.benatt.passwordmanager"
         minSdkVersion 23
         targetSdkVersion 30
         versionCode 2

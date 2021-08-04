@@ -3,7 +3,7 @@
     <data>
         <variable
             name="authViewModel"
-            type="com.benatt.passwordsmanager.views.auth.AuthViewModel" />
+            type="com.benatt.passwordmanager.views.auth.AuthViewModel" />
     </data>
 
     <RelativeLayout

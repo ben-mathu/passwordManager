@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/fragment_auth"
         android:label="Authentication"
-        android:name="com.benatt.passwordsmanager.views.auth.AuthFragment"
+        android:name="com.benatt.passwordmanager.views.auth.AuthFragment"
         tools:layout="@layout/fragment_auth">
 
         <action
@@ -22,7 +22,7 @@
     <fragment
         android:id="@+id/fragment_passwords"
         android:label="Saved Passwords"
-        android:name="com.benatt.passwordsmanager.views.passwords.PasswordsFragment"
+        android:name="com.benatt.passwordmanager.views.passwords.PasswordsFragment"
         tools:layout="@layout/fragment_passwords">
 
         <action
@@ -33,7 +33,7 @@
     <fragment
         android:id="@+id/fragment_add_password"
         android:label="Add Password"
-        android:name="com.benatt.passwordsmanager.views.addpassword.AddPasswordFragment"
+        android:name="com.benatt.passwordmanager.views.addpassword.AddPasswordFragment"
         tools:layout="@layout/fragment_add_password">
 
         <action
