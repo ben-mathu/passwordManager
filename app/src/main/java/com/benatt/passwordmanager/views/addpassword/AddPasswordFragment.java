@@ -93,7 +93,7 @@ public class AddPasswordFragment extends Fragment {
         // set password when the user is editing the password details
         String plainPassword = "";
         if (!password.getCipher().isEmpty()) {
-            plainPassword = decryptPassword(password);
+            plainPassword = decryptPassword(password.getCipher());
             this.password.setCipher(plainPassword);
             binding.setPassword(password);
         }

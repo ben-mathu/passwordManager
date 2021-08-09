@@ -12,6 +12,7 @@ android {
         versionName "1.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.debug
     }
 
     buildFeatures {
@@ -29,6 +30,16 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    configurations {
+        all { // You should exclude one of them not both of them
+            exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+        }
+    }
+
+    packagingOptions {
+        exclude "META-INF/DEPENDENCIES"
     }
 }
 
@@ -62,4 +73,16 @@ dependencies {
 
     // Gson
     implementation 'com.google.code.gson:gson:2.8.6'
+
+    implementation 'com.google.android.gms:play-services-auth:19.2.0'
+    implementation ('com.google.apis:google-api-services-drive:v3-rev136-1.25.0')
+            {
+                exclude group: 'org.apache.httpcomponents'
+            }
+    implementation ('com.google.api-client:google-api-client-android:1.26.0')
+            {
+                exclude group: 'org.apache.httpcomponets'
+            }
+
+    implementation 'com.google.http-client:google-http-client-gson:1.26.0'
 }

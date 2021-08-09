@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/back_passwords"
+        android:title="@string/backup_passwords"
+        android:icon="@drawable/ic_action_backup"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/restore_password"
+        android:title="@string/restore_password"
+        android:icon="@drawable/ic_action_restore" />
+
+    <item
+        android:id="@+id/refresh_password_list"
+        android:title="@string/refresh_list"
+        android:icon="@drawable/ic_action_refresh"
+        app:showAsAction="ifRoom" />
+
+</menu>

@@ -50,7 +50,7 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                 onItemClick.startKeyguardActivity(new OnActivityResult() {
                     @Override
                     public void onResultReturned() {
-                        binding.passwordValue.setText(decryptPassword(password));
+                        binding.passwordValue.setText(decryptPassword(password.getCipher()));
                         binding.btnDecrypt.setText(R.string.hide_password);
                         isDecrypted = true;
 

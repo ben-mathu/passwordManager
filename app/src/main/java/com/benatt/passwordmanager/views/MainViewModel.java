@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 import com.benatt.passwordmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordmanager.data.models.passwords.model.Password;
 import com.benatt.passwordmanager.data.models.user.UserRepository;
+import com.benatt.passwordmanager.utils.Decryptor;
 import com.benatt.passwordmanager.utils.Encryptor;
 import com.google.gson.Gson;
 
@@ -35,8 +36,9 @@ public class MainViewModel extends ViewModel {
     private SecretKey secretKey;
 
     public MutableLiveData<String> message = new MutableLiveData<>();
-    public MutableLiveData<List<Password>> liveData = new MutableLiveData<>();
-    public MutableLiveData<String> encryptedString = new MutableLiveData<>();
+    public MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
+    public MutableLiveData<String> encipheredPasswords = new MutableLiveData<>();
+    public MutableLiveData<String> decryptedPasswords = new MutableLiveData<>();
 
     private Disposable disposable;
 
@@ -45,18 +47,6 @@ public class MainViewModel extends ViewModel {
         this.userRepo = userRepo;
         this.passwordRepo = passwordRepo;
         this.secretKey = secretKey;
-    }
-
-    public void getAllPasswords() {
-        disposable = passwordRepo.getAll()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(passwords -> {
-                    liveData.setValue(passwords);
-                }, throwable -> {
-                    message.setValue("Error getting passwords");
-                    Log.e(TAG, "getAllPasswords: Error " + throwable.getMessage(), throwable);
-                });
     }
 
     @Override
@@ -68,20 +58,45 @@ public class MainViewModel extends ViewModel {
         super.onCleared();
     }
 
-    public void encryptPasswordData(List<Password> passwords) {
+    public void getPasswords() {
+        disposable = passwordRepo.getAll()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(passwordList -> {
+                    if (passwordList.isEmpty())
+                        message.setValue("There are no saved passwords");
+                    else
+                        passwords.setValue(passwordList);
+                }, throwable -> message.setValue("Error occurred. Please try again"));
+    }
+
+    public void encryptPasswords(String json) {
         try {
-            String cipher = Encryptor.encrypt(secretKey, new Gson().toJson(passwords));
-            encryptedString.setValue(cipher);
-        } catch (BadPaddingException e) {
+            String cipher = Encryptor.encrypt(secretKey, json);
+            encipheredPasswords.setValue(cipher);
+        } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
             e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             e.printStackTrace();
         }
+    }
+
+    public void decrypt(String jsonCipher) {
+        String json = Decryptor.decryptPassword(jsonCipher);
+        decryptedPasswords.setValue(json);
+    }
+
+    public void savePasswords(List<Password> passwords) {
+        disposable = passwordRepo.saveAll(passwords)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        msg -> {
+                            Log.d(TAG, "savePasswords: " + msg);
+                        },
+                        throwable -> {
+                            Log.e(TAG, "savePasswords: Error" + throwable.getLocalizedMessage(), throwable);
+                        }
+                );
     }
 }

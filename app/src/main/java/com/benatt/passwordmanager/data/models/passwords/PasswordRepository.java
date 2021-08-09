@@ -1,5 +1,7 @@
 package com.benatt.passwordmanager.data.models.passwords;
 
+import androidx.annotation.NonNull;
+
 import com.benatt.passwordmanager.data.models.passwords.model.Password;
 import com.benatt.passwordmanager.data.models.Dao;
 
@@ -9,6 +11,8 @@ import javax.inject.Inject;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -42,5 +46,13 @@ public class PasswordRepository extends Dao<Password> {
         return passwordDao.delete(password)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
+    }
+
+    @Override
+    public Observable<String> saveAll(List<Password> items) {
+        return Observable.create(emitter -> {
+            passwordDao.saveAll(items);
+            emitter.onNext("Passwords Saved successfully");
+        });
     }
 }

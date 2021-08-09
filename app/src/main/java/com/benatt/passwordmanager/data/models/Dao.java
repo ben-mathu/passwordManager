@@ -16,4 +16,6 @@ public abstract class Dao<T> {
     public Observable<T> get(int value) { return Observable.just(null); }
 
     public Completable delete(Password password) { return Completable.complete(); }
+
+    public abstract Observable<String> saveAll(List<T> items);
 }

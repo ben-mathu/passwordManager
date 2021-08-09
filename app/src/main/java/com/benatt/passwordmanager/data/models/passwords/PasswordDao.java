@@ -12,6 +12,7 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /**
  * @author bernard
@@ -26,4 +27,7 @@ public interface PasswordDao {
 
     @Delete
     Completable delete(Password password);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void saveAll(List<Password> passwords);
 }
