@@ -140,25 +140,28 @@ public class AddPasswordFragment extends Fragment {
                     secureRandom,
                     GenerateRandomString.getAlphas()
             );
-        else if (alphabets.isChecked() && special.isChecked() && digits.isChecked())
+        else if (alphabets.isChecked() && special.isChecked() && digits.isChecked()) {
+            String alphanumericSpecial = GenerateRandomString.getAlphanumericSpecial();
             randomString = new GenerateRandomString(
                     passwordLength,
                     secureRandom,
-                    GenerateRandomString.getAlphanumericSpecial()
+                    alphanumericSpecial
             );
-        else if (alphabets.isChecked() && digits.isChecked())
+        } else if (alphabets.isChecked() && digits.isChecked()) {
+            String alphanumeric = GenerateRandomString.getAlphaNumeric();
             randomString = new GenerateRandomString(
                     passwordLength,
                     secureRandom,
-                    GenerateRandomString.getAlphaNumeric()
+                    alphanumeric
             );
-        else if (alphabets.isChecked() && special.isChecked())
+        } else if (alphabets.isChecked() && special.isChecked()) {
+            String alphaSpecial = GenerateRandomString.getAlphaSpecial();
             randomString = new GenerateRandomString(
                     passwordLength,
                     secureRandom,
-                    GenerateRandomString.getAlphaSpecial()
+                    alphaSpecial
             );
-        else {
+        } else {
             showMessage("Alphabets is required", view);
             return "";
         }
