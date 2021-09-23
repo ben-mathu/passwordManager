@@ -2,9 +2,9 @@
 .gradle
 local.properties
 .idea
-app/release
-app/build
-app/debug
+app/release/*
+app/build/*
+app/debug/*
 .DS_Store
 build
 captures
