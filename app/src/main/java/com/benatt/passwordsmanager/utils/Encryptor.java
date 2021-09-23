@@ -3,7 +3,6 @@ package com.benatt.passwordsmanager.utils;
 import android.util.Base64;
 
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.AlgorithmParameterSpec;
@@ -24,7 +23,7 @@ public class Encryptor {
 
     public static final int TAG_LENGTH_BYTES = 12;
 
-    public static String encryptPassword(SecretKey secretKey, String password) throws BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+    public static String encrypt(SecretKey secretKey, String plainText) throws BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 
@@ -33,7 +32,9 @@ public class Encryptor {
 //        MainApp.getPreferences().edit()
 //                .putString(INITIALIZATION_VECTOR, encodediv)
 //                .apply();
-        return encodediv + DELIMITER + Base64.encodeToString(cipher.doFinal(password.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
+        return encodediv + DELIMITER + Base64.encodeToString(
+                cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8)),
+                Base64.DEFAULT);
     }
 
     public static AlgorithmParameterSpec getParameter(byte[] iv) {

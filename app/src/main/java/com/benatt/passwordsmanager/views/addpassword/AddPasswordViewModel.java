@@ -9,7 +9,6 @@ import com.benatt.passwordsmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.utils.Encryptor;
 
-import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -31,6 +30,8 @@ public class AddPasswordViewModel extends ViewModel {
 
     MutableLiveData<String> msgView = new MutableLiveData<>();
     MutableLiveData<Boolean> goToPasswordsFragments = new MutableLiveData<>();
+    public MutableLiveData<String> editPassword = new MutableLiveData<>("");
+    public MutableLiveData<String> editAccountName = new MutableLiveData<>("");
 
     private SecretKey secretKey;
     private PasswordRepository passwordRepository;
@@ -43,32 +44,50 @@ public class AddPasswordViewModel extends ViewModel {
         this.passwordRepository = passwordRepository;
     }
 
-    public void savePassword(String password, String accountName) {
-        if (password.isEmpty())
-            msgView.setValue("Password is empty");
-        else if (accountName.isEmpty())
-            msgView.setValue("Please provide the account name");
-        else {
-            try {
-                String cipher = Encryptor.encryptPassword(secretKey, password);
-                Password passwd = new Password();
-                passwd.setAccountName(accountName);
-                passwd.setCipher(cipher);
-                disposable = passwordRepository.save(passwd)
+    public void savePassword(Password password, String newPassword) {
+        try {
+            if (password != null) {
+                String cipher = Encryptor.encrypt(secretKey, newPassword);
+                password.setCipher(cipher);
+                disposable = passwordRepository.save(password)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribeOn(Schedulers.io())
                         .subscribe(value -> {
-                                    msgView.setValue(value);
-                                    goToPasswordsFragments.setValue(true);
-                                },
-                                throwable -> {
-                                    msgView.setValue("An error occurred, please try again.");
-                                    Log.e(TAG, "savePassword: ", throwable);
-                                }
-                        );
-            } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
-                Log.e(TAG, "savePassword: Error", e);
+                            msgView.setValue(value);
+                            goToPasswordsFragments.setValue(true);
+                        }, throwable -> {
+                            msgView.setValue("An error occurred, please try again.");
+                            Log.e(TAG, "savePassword: ", throwable);
+                        });
+                return;
+            } else {
+                String passwordStr = editPassword.getValue();
+                String accountNameStr = editAccountName.getValue();
+                if (passwordStr.isEmpty())
+                    msgView.setValue("Password is empty");
+                else if (accountNameStr.isEmpty())
+                    msgView.setValue("Please provide the account name");
+                else {
+                    String cipher = Encryptor.encrypt(secretKey, passwordStr);
+                    Password passwd = new Password();
+                    passwd.setAccountName(accountNameStr);
+                    passwd.setCipher(cipher);
+                    disposable = passwordRepository.save(passwd)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribeOn(Schedulers.io())
+                            .subscribe(value -> {
+                                        msgView.setValue(value);
+                                        goToPasswordsFragments.setValue(true);
+                                    },
+                                    throwable -> {
+                                        msgView.setValue("An error occurred, please try again.");
+                                        Log.e(TAG, "savePassword: ", throwable);
+                                    }
+                            );
+                }
             }
+        } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
+            Log.e(TAG, "savePassword: Error", e);
         }
     }
 

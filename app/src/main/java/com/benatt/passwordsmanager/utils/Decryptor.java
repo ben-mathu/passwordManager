@@ -1,10 +1,10 @@
+
 package com.benatt.passwordsmanager.utils;
 
 import android.util.Base64;
 import android.util.Log;
 
 import com.benatt.passwordsmanager.MainApp;
-import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +33,7 @@ import static com.benatt.passwordsmanager.utils.Constants.INITIALIZATION_VECTOR;
 public class Decryptor {
     public static final String TAG = Decryptor.class.getSimpleName();
 
-    public static String decryptPassword(Password password) {
+    public static String decryptPassword(String cipherText) {
         String plainPassword = "";
         try {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -47,12 +47,14 @@ public class Decryptor {
             String[] cipherProps;
             String actualCipher;
             String ivString;
-            if (password.getCipher().contains(DELIMITER)) {
-                cipherProps = password.getCipher().split(DELIMITER);
+            if (cipherText.contains(DELIMITER)) {
+                cipherProps = cipherText.split(DELIMITER);
                 actualCipher = cipherProps[1];
                 ivString = cipherProps[0];
             } else {
-                actualCipher = password.getCipher();
+                // for those passwords that used previous technique to encrypt passwords
+                // encryption used a static variable for the initialization vector
+                actualCipher = cipherText;
                 ivString = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
             }
 

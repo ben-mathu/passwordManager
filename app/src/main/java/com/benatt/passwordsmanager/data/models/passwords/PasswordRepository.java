@@ -43,4 +43,12 @@ public class PasswordRepository extends Dao<Password> {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
+
+    @Override
+    public Observable<String> saveAll(List<Password> items) {
+        return Observable.create(emitter -> {
+            passwordDao.saveAll(items);
+            emitter.onNext("Passwords Saved successfully");
+        });
+    }
 }

@@ -26,4 +26,7 @@ public interface PasswordDao {
 
     @Delete
     Completable delete(Password password);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void saveAll(List<Password> passwords);
 }

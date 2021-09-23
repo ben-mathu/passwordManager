@@ -24,4 +24,7 @@
     <string name="show_password">Show</string>
     <string name="password_encrypted">Password Encrypted</string>
     <string name="delete">Delete</string>
+    <string name="backup_passwords">Backup Passwords</string>
+    <string name="restore_password">Restore Password</string>
+    <string name="refresh_list">Refresh List</string>
 </resources>

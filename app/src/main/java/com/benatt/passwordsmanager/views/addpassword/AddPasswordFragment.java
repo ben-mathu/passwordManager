@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,12 +49,6 @@ public class AddPasswordFragment extends Fragment {
 
         Bundle args = getArguments();
         this.password = args != null ? args.getParcelable(EDIT_PASSWORD) : null;
-
-        if (password == null) {
-            this.password = new Password();
-            this.password.setAccountName("");
-            this.password.setCipher("");
-        }
     }
 
     @Nullable
@@ -64,7 +59,14 @@ public class AddPasswordFragment extends Fragment {
         binding = FragmentAddPasswordBinding.inflate(inflater, container, false);
         addPasswordViewModel = new ViewModelProvider(this, viewModelFactory).get(AddPasswordViewModel.class);
 
-        binding.edtAccountName.setText(password.getAccountName());
+        if (password == null) {
+            this.password = new Password();
+            this.password.setAccountName("");
+            this.password.setCipher("");
+            binding.setPassword(password);
+        }
+
+//        binding.edtAccountName.setText(password.getAccountName());
 
         binding.btnShowPrefs.setOnClickListener(view -> {
             if (isShowingPrefs) {
@@ -88,9 +90,16 @@ public class AddPasswordFragment extends Fragment {
             NavHostFragment.findNavController(this).navigate(R.id.fragment_passwords);
         });
 
-        String plainPassword = decryptPassword(password);
-        binding.edtPassword.setText(plainPassword);
-        binding.edtLength.setText(String.valueOf(plainPassword.length()));
+        // set password when the user is editing the password details
+        String plainPassword = "";
+        if (!password.getCipher().isEmpty()) {
+            plainPassword = decryptPassword(password.getCipher());
+            this.password.setCipher(plainPassword);
+            binding.setPassword(password);
+        }
+
+        //        binding.edtPassword.setText(plainPassword);
+        binding.edtLength.setText(String.valueOf(plainPassword.length() > 0 ? plainPassword.length() : 12));
 
         binding.btnSetPassword
                 .setOnClickListener(view -> binding.edtPassword.setText(generatePassword(view)));
@@ -99,7 +108,7 @@ public class AddPasswordFragment extends Fragment {
 
         addPasswordViewModel.msgView.observe(
                 getViewLifecycleOwner(),
-                message -> showMessage(message, getActivity().getCurrentFocus()));
+                message -> showMessage(message, getActivity().findViewById(android.R.id.content)));
 
         addPasswordViewModel.goToPasswordsFragments.observe(
                 getViewLifecycleOwner(),
@@ -111,7 +120,8 @@ public class AddPasswordFragment extends Fragment {
     }
 
     private void savePassword() {
-        addPasswordViewModel.savePassword(binding.edtPassword.getText().toString(), binding.edtAccountName.getText().toString());
+
+        addPasswordViewModel.savePassword(password, binding.edtPassword.getText().toString());
     }
 
     private String generatePassword(View view) {
@@ -125,31 +135,39 @@ public class AddPasswordFragment extends Fragment {
         if (!binding.edtLength.getText().toString().isEmpty())
             passwordLength = Integer.parseInt(binding.edtLength.getText().toString());
 
+        if (passwordLength <= 0) {
+            Toast.makeText(requireActivity(), "Password length cannot be less than or equal to 0", Toast.LENGTH_LONG).show();
+            return "";
+        }
+
         if (alphabets.isChecked() && !special.isChecked() && !digits.isChecked())
             randomString = new GenerateRandomString(
                     passwordLength,
                     secureRandom,
                     GenerateRandomString.getAlphas()
             );
-        else if (alphabets.isChecked() && special.isChecked() && digits.isChecked())
+        else if (alphabets.isChecked() && special.isChecked() && digits.isChecked()) {
+            String alphanumericSpecial = GenerateRandomString.getAlphanumericSpecial();
             randomString = new GenerateRandomString(
                     passwordLength,
                     secureRandom,
-                    GenerateRandomString.getAlphanumericSpecial()
+                    alphanumericSpecial
             );
-        else if (alphabets.isChecked() && digits.isChecked())
+        } else if (alphabets.isChecked() && digits.isChecked()) {
+            String alphanumeric = GenerateRandomString.getAlphaNumeric();
             randomString = new GenerateRandomString(
                     passwordLength,
                     secureRandom,
-                    GenerateRandomString.getAlphaNumeric()
+                    alphanumeric
             );
-        else if (alphabets.isChecked() && special.isChecked())
+        } else if (alphabets.isChecked() && special.isChecked()) {
+            String alphaSpecial = GenerateRandomString.getAlphaSpecial();
             randomString = new GenerateRandomString(
                     passwordLength,
                     secureRandom,
-                    GenerateRandomString.getAlphaSpecial()
+                    alphaSpecial
             );
-        else {
+        } else {
             showMessage("Alphabets is required", view);
             return "";
         }

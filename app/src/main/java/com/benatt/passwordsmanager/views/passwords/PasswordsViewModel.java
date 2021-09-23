@@ -5,9 +5,15 @@ import androidx.lifecycle.ViewModel;
 
 import com.benatt.passwordsmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
+import com.benatt.passwordsmanager.utils.Encryptor;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.inject.Inject;
 
@@ -26,6 +32,7 @@ public class PasswordsViewModel extends ViewModel {
 
     MutableLiveData<String> msgEmpty = new MutableLiveData<>();
     MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
+    public MutableLiveData<String> encryptedString = new MutableLiveData<>();
 
     @Inject
     public PasswordsViewModel(
@@ -45,6 +52,17 @@ public class PasswordsViewModel extends ViewModel {
                     else
                         passwords.setValue(passwordsList);
                 }, throwable -> msgEmpty.setValue("An error occurred."));
+    }
+
+    public void encryptPasswordData(String passwords) {
+        try {
+            String cipher = Encryptor.encrypt(secretKey, passwords);
+            encryptedString.setValue(cipher);
+        } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
     }
 
     public void unsubscribe() {
