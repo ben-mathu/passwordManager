@@ -32,12 +32,13 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
 
     private Password password;
 
-    private boolean isDecrypted = false;
+    private boolean isDecrypted;
 
     public PasswordsViewHolder(PasswordItemBinding binding, Activity context) {
         super(binding.getRoot());
         this.binding = binding;
         this.context = context;
+        this.isDecrypted = false;
     }
 
     public void bind(Password password, OnItemClick onItemClick) {
@@ -67,14 +68,14 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
 
         binding.getRoot().setOnClickListener(view -> onItemClick.onItemClick(password));
 
-        passwordItemViewModel.bind(password);
+        passwordItemViewModel.bind(password, this.context);
     }
 
     private void startTimer() {
-        new CountDownTimer(10000, 1000) {
+        new CountDownTimer(20000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                Log.d(TAG, "onTick: Intentionally left blank");
+                // onTick: Intentionally left blank
             }
 
             @Override

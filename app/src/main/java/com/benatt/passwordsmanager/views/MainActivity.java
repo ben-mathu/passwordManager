@@ -35,6 +35,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.gson.GsonFactory;
@@ -84,7 +85,15 @@ public class MainActivity extends AppCompatActivity {
 
         this.keyguardManager = (KeyguardManager) this.getSystemService(Context.KEYGUARD_SERVICE);
         if (!keyguardManager.isDeviceSecure()) {
-            Toast.makeText(this, "Please secure your device before using this app", Toast.LENGTH_LONG).show();
+            Snackbar.make(this,
+                    getCurrentFocus(),
+                    "Please secure your device before using this app",
+                    Snackbar.LENGTH_SHORT).show();
+
+//            Toast.makeText(this,
+//                    "Please secure your device before using this app",
+//                    Toast.LENGTH_LONG).show();
+
             Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
             startActivity(intent);
             finish();
