@@ -20,6 +20,7 @@ import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
  */
 public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     public static final int REQUEST_CODE = 1101;
+    public static final int START_PASSWORD_DETAIL_SCREEN = 1102;
     public static final String TAG = PasswordsViewHolder.class.getSimpleName();
 
     private KeyguardManager keyguardManager;
@@ -58,7 +59,7 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
 
                         startTimer();
                     }
-                });
+                }, REQUEST_CODE);
             } else {
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
                 binding.btnDecrypt.setText(context.getString(R.string.show_password));

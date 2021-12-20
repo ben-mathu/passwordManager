@@ -9,5 +9,5 @@ import com.benatt.passwordsmanager.utils.OnActivityResult;
 public interface OnItemClick {
     void onItemClick(Password password);
 
-    void startKeyguardActivity(OnActivityResult onActivityResult);
+    void startKeyguardActivity(OnActivityResult onActivityResult, int requestCode);
 }

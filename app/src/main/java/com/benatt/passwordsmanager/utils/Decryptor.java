@@ -65,7 +65,7 @@ public class Decryptor {
 
             plainPassword = new String(cipher.doFinal(passwordStr), StandardCharsets.UTF_8);
         } catch (KeyStoreException | UnrecoverableEntryException | BadPaddingException | NoSuchAlgorithmException | CertificateException | InvalidKeyException | InvalidAlgorithmParameterException | NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
-            Log.e(TAG, "decryptPassword: ", e);
+//            Log.e(TAG, "decryptPassword: ", e);
         }
 
         return plainPassword;
