@@ -20,17 +20,16 @@ import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
  */
 public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     public static final int REQUEST_CODE = 1101;
+    public static final int START_PASSWORD_DETAIL_SCREEN = 1102;
     public static final String TAG = PasswordsViewHolder.class.getSimpleName();
 
     private KeyguardManager keyguardManager;
 
     private OnActivityResult onActivityResult;
 
-    private PasswordItemViewModel passwordItemViewModel = new PasswordItemViewModel();
-    private PasswordItemBinding binding;
-    private Activity context;
-
-    private Password password;
+    private final PasswordItemViewModel passwordItemViewModel = new PasswordItemViewModel();
+    private final PasswordItemBinding binding;
+    private final Activity context;
 
     private boolean isDecrypted;
 
@@ -42,23 +41,18 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     }
 
     public void bind(Password password, OnItemClick onItemClick) {
-        this.password = password;
 
         binding.setPasswordItemViewModel(passwordItemViewModel);
         binding.btnDecrypt.setText(R.string.show_password);
         binding.btnDecrypt.setOnClickListener(view -> {
             if (!isDecrypted) {
-                onItemClick.startKeyguardActivity(new OnActivityResult() {
-                    @Override
-                    public void onResultReturned() {
-                        binding.passwordValue.setText(decryptPassword(password.getCipher()));
-                        binding.btnDecrypt.setText(R.string.hide_password);
-                        isDecrypted = true;
+                onItemClick.startKeyguardActivity(() -> {
+                    binding.passwordValue.setText(decryptPassword(password.getCipher()));
+                    binding.btnDecrypt.setText(R.string.hide_password);
+                    isDecrypted = true;
 
-
-                        startTimer();
-                    }
-                });
+                    startTimer();
+                }, REQUEST_CODE);
             } else {
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
                 binding.btnDecrypt.setText(context.getString(R.string.show_password));

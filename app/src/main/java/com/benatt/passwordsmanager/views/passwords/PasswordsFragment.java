@@ -4,6 +4,8 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,6 +15,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
@@ -34,6 +37,7 @@ import javax.inject.Inject;
 import static android.app.Activity.RESULT_OK;
 import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
 import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.REQUEST_CODE;
+import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.START_PASSWORD_DETAIL_SCREEN;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -52,6 +56,8 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     private static final String TAG = PasswordsFragment.class.getSimpleName();
     private static final String PASSWORD_POS = "position";
 
+    private KeyguardManager keyguardManager;
+
     private PasswordsViewModel passwordsViewModel;
     private SharedViewModel sharedViewModel;
 
@@ -63,12 +69,30 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     private PasswordsAdapter adapter;
     private OnActivityResult onActivityResult;
     private List<Password> passwords = new ArrayList<>();
+    private Password password;
 
     @Override
     public void onStart() {
         super.onStart();
 
         passwordsViewModel.getPasswords();
+
+        this.keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+        if (!keyguardManager.isDeviceSecure()) {
+            showDialog(binding.getRoot());
+        }
+    }
+
+    private void showDialog(View rootView) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Attention");
+        builder.setMessage("Please secure your device before using this app");
+        builder.setCancelable(false);
+        builder.setPositiveButton("ok", ((dialog, which) -> {
+            Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
+            getActivity().startActivity(intent);
+        }));
+        builder.show();
     }
 
     @Nullable
@@ -116,7 +140,8 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     private void showMessage(String s, View rootView) {
         assert getActivity() != null;
 //        assert getActivity().getCurrentFocus() != null;
-        Snackbar.make(rootView, s, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(rootView, s, Snackbar.LENGTH_SHORT)
+                .show();
     }
 
     @Override
@@ -127,13 +152,12 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
 
     @Override
     public void onItemClick(Password password) {
-        Bundle args = new Bundle();
-        args.putParcelable(EDIT_PASSWORD, password);
-        NavHostFragment.findNavController(this).navigate(R.id.fragment_add_password, args);
+        this.password = password;
+        startKeyguardActivity(null, START_PASSWORD_DETAIL_SCREEN);
     }
 
     @Override
-    public void startKeyguardActivity(OnActivityResult onActivityResult) {
+    public void startKeyguardActivity(OnActivityResult onActivityResult, int requestCode) {
         this.onActivityResult = onActivityResult;
         KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
         if (keyguardManager.isKeyguardSecure()) {
@@ -141,7 +165,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
                     getActivity().getString(R.string.auth_key_guard),
                     getActivity().getString(R.string.auth_msg)
             );
-            startActivityForResult(intent, REQUEST_CODE);
+            startActivityForResult(intent, requestCode);
         }
     }
 
@@ -150,6 +174,12 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         if (requestCode == REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 this.onActivityResult.onResultReturned();
+            }
+        } else if (requestCode == START_PASSWORD_DETAIL_SCREEN) {
+            if (resultCode == RESULT_OK) {
+                Bundle args = new Bundle();
+                args.putParcelable(EDIT_PASSWORD, password);
+                NavHostFragment.findNavController(this).navigate(R.id.fragment_add_password, args);
             }
         }
     }

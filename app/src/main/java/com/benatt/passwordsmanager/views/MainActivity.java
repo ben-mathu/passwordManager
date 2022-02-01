@@ -69,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
     @Inject
     ViewModelFactory viewModelFactory;
 
-    private KeyguardManager keyguardManager;
-
     private ActivityMainBinding binding;
 
     private NavHostFragment navHost;
@@ -78,27 +76,6 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNav;
 
     private DriveServiceHelper driveServiceHelper;
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        this.keyguardManager = (KeyguardManager) this.getSystemService(Context.KEYGUARD_SERVICE);
-        if (!keyguardManager.isDeviceSecure()) {
-            Snackbar.make(this,
-                    getCurrentFocus(),
-                    "Please secure your device before using this app",
-                    Snackbar.LENGTH_SHORT).show();
-
-//            Toast.makeText(this,
-//                    "Please secure your device before using this app",
-//                    Toast.LENGTH_LONG).show();
-
-            Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
-            startActivity(intent);
-            finish();
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
