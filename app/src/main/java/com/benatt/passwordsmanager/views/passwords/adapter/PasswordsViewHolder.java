@@ -2,9 +2,15 @@ package com.benatt.passwordsmanager.views.passwords.adapter;
 
 import android.app.Activity;
 import android.app.KeyguardManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.CountDownTimer;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.benatt.passwordsmanager.R;
@@ -47,6 +53,11 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                 onItemClick.startKeyguardActivity(() -> {
                     binding.passwordValue.setText(decryptPassword(password.getCipher()));
                     binding.btnDecrypt.setText(R.string.hide_password);
+                    binding.lockPassword.setImageDrawable(
+                            context.getResources().getDrawable(R.drawable.ic_unlocked_password)
+                    );
+                    binding.lockPassword.setColorFilter(
+                            context.getResources().getColor(R.color.colorAccent));
                     isDecrypted = true;
 
                     startTimer();
@@ -54,8 +65,22 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
             } else {
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
                 binding.btnDecrypt.setText(context.getString(R.string.show_password));
+                binding.lockPassword.setImageDrawable(
+                        context.getResources().getDrawable(R.drawable.ic_locked_password)
+                );
                 isDecrypted = false;
             }
+        });
+
+        binding.btnCopy.setOnClickListener(v -> {
+            ClipboardManager cm =
+                    (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+
+            ClipData clip = ClipData
+                    .newPlainText("password",
+                            decryptPassword(password.getCipher()));
+            cm.setPrimaryClip(clip);
+            Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show();
         });
 
         binding.getRoot().setOnClickListener(view -> onItemClick.onItemClick(password));
@@ -74,6 +99,9 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
             public void onFinish() {
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
                 binding.btnDecrypt.setText(context.getString(R.string.show_password));
+                binding.lockPassword.setImageDrawable(
+                        context.getResources().getDrawable(R.drawable.ic_locked_password)
+                );
                 isDecrypted = false;
             }
         }.start();
