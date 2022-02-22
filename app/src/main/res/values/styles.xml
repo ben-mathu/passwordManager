@@ -1,15 +1,18 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="buttonStyle">@style/CustomButton</item>
+        <item name="android:buttonStyle">@style/CustomButton</item>
+        <item name="iconTint">@color/colorAccent</item>
     </style>
 
     <style name="CustomButton" parent="@android:style/Widget.Holo.Light.Button">
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/colorPrimaryDark</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:textColorPrimary">@color/colorAccent</item>
     </style>
 </resources>

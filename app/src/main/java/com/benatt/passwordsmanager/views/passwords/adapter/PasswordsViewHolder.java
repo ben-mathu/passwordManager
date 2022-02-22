@@ -5,6 +5,7 @@ import android.app.KeyguardManager;
 import android.os.CountDownTimer;
 import android.util.Log;
 
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.benatt.passwordsmanager.R;
@@ -49,6 +50,11 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                 onItemClick.startKeyguardActivity(() -> {
                     binding.passwordValue.setText(decryptPassword(password.getCipher()));
                     binding.btnDecrypt.setText(R.string.hide_password);
+                    binding.lockPassword.setImageDrawable(
+                            context.getResources().getDrawable(R.drawable.ic_unlocked_password)
+                    );
+                    binding.lockPassword.setColorFilter(
+                            context.getResources().getColor(R.color.colorAccent));
                     isDecrypted = true;
 
                     startTimer();
@@ -56,6 +62,9 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
             } else {
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
                 binding.btnDecrypt.setText(context.getString(R.string.show_password));
+                binding.lockPassword.setImageDrawable(
+                        context.getResources().getDrawable(R.drawable.ic_locked_password)
+                );
                 isDecrypted = false;
             }
         });
@@ -76,6 +85,9 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
             public void onFinish() {
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
                 binding.btnDecrypt.setText(context.getString(R.string.show_password));
+                binding.lockPassword.setImageDrawable(
+                        context.getResources().getDrawable(R.drawable.ic_locked_password)
+                );
                 isDecrypted = false;
             }
         }.start();
