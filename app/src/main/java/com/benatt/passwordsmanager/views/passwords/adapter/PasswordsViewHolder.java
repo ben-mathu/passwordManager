@@ -2,8 +2,13 @@ package com.benatt.passwordsmanager.views.passwords.adapter;
 
 import android.app.Activity;
 import android.app.KeyguardManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.CountDownTimer;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -65,6 +70,17 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                 );
                 isDecrypted = false;
             }
+        });
+
+        binding.btnCopy.setOnClickListener(v -> {
+            ClipboardManager cm =
+                    (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+
+            ClipData clip = ClipData
+                    .newPlainText("password",
+                            decryptPassword(password.getCipher()));
+            cm.setPrimaryClip(clip);
+            Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show();
         });
 
         binding.getRoot().setOnClickListener(view -> onItemClick.onItemClick(password));
