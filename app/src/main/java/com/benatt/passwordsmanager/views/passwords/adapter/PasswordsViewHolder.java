@@ -23,8 +23,6 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     public static final int START_PASSWORD_DETAIL_SCREEN = 1102;
     public static final String TAG = PasswordsViewHolder.class.getSimpleName();
 
-    private KeyguardManager keyguardManager;
-
     private OnActivityResult onActivityResult;
 
     private final PasswordItemViewModel passwordItemViewModel = new PasswordItemViewModel();
@@ -66,7 +64,7 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     }
 
     private void startTimer() {
-        new CountDownTimer(20000, 1000) {
+        new CountDownTimer(60000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 // onTick: Intentionally left blank
