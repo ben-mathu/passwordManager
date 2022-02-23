@@ -30,4 +30,11 @@
     <string name="encryption_status">Encryption Status</string>
     <string name="search">Search</string>
     <string name="copy_to_clipboard">Copy</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="disclaimer">Disclaimer</string>
+    <string name="disclaimer_message">This app will not recover you passwords when you loose you device.
+        You can only recover the passwords on the same device.\n\n
+        If you still want to continue please OK button, otherwise press CANCEL.
+        Also keep the app so that you can receive updates for when I finally fix this.</string>
 </resources>

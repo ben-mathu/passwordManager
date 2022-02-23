@@ -1,7 +1,10 @@
 package com.benatt.passwordsmanager.views;
 
+import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
+
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
@@ -12,6 +15,7 @@ import androidx.navigation.ui.NavigationUI;
 import android.app.KeyguardManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -115,6 +119,29 @@ public class MainActivity extends AppCompatActivity {
         });
 
         requestSignIn();
+
+        boolean isDisclaimerShown = MainApp.getPreferences()
+                .getBoolean(IS_DISCLAIMER_SHOWN, false);
+
+        if (!isDisclaimerShown)
+            startAlertActivity();
+    }
+
+    private void startAlertActivity() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.disclaimer);
+        builder.setMessage(R.string.disclaimer_message);
+        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
+            MainApp.getPreferences().edit()
+                    .putBoolean(IS_DISCLAIMER_SHOWN, false)
+                    .apply();
+            dialog.dismiss();
+        });
+
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
+            finish();
+        });
+        builder.show();
     }
 
     private void formatAndSaveFile(String cipher) {
