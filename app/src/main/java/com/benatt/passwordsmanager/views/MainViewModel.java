@@ -30,20 +30,19 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class MainViewModel extends ViewModel {
     private static final String TAG = MainViewModel.class.getSimpleName();
-    private final UserRepository userRepo;
+
     private PasswordRepository passwordRepo;
     private SecretKey secretKey;
 
-    public MutableLiveData<String> message = new MutableLiveData<>();
-    public MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
-    public MutableLiveData<String> encipheredPasswords = new MutableLiveData<>();
-    public MutableLiveData<String> decryptedPasswords = new MutableLiveData<>();
+    public final MutableLiveData<String> message = new MutableLiveData<>();
+    public final MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
+    public final MutableLiveData<String> encipheredPasswords = new MutableLiveData<>();
+    public final MutableLiveData<String> decryptedPasswords = new MutableLiveData<>();
 
     private Disposable disposable;
 
     @Inject
     public MainViewModel(UserRepository userRepo, PasswordRepository passwordRepo, SecretKey secretKey) {
-        this.userRepo = userRepo;
         this.passwordRepo = passwordRepo;
         this.secretKey = secretKey;
     }
@@ -73,9 +72,7 @@ public class MainViewModel extends ViewModel {
         try {
             String cipher = Encryptor.encrypt(secretKey, json);
             encipheredPasswords.setValue(cipher);
-        } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+        } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
             e.printStackTrace();
         }
     }
@@ -90,12 +87,9 @@ public class MainViewModel extends ViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        msg -> {
-                            Log.d(TAG, "savePasswords: " + msg);
-                        },
-                        throwable -> {
-                            Log.e(TAG, "savePasswords: Error" + throwable.getLocalizedMessage(), throwable);
-                        }
+                        msg -> Log.d(TAG, "savePasswords: " + msg),
+                        throwable -> Log.e(TAG, "savePasswords: Error"
+                                + throwable.getLocalizedMessage(), throwable)
                 );
     }
 }

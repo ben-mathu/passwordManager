@@ -4,6 +4,9 @@ package com.benatt.passwordsmanager.utils;
  * @author bernard
  */
 public class Constants {
+    private Constants() {
+        // Finders keepers
+    }
     public static final int DB_VERSION = 1;
     public static final String DB_NAME = "password.db";
 

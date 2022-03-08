@@ -14,8 +14,8 @@ import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 public class PasswordItemViewModel extends ViewModel {
     public static final String TAG = PasswordItemViewModel.class.getSimpleName();
 
-    public MutableLiveData<String> passwordText = new MutableLiveData<>();
-    public MutableLiveData<String> accountName = new MutableLiveData<>();
+    public final MutableLiveData<String> passwordText = new MutableLiveData<>();
+    public final MutableLiveData<String> accountName = new MutableLiveData<>();
 
     public void bind(Password password, Context context) {
         passwordText.setValue(context.getString(R.string.password_encrypted));

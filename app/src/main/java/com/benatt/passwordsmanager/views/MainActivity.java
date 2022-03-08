@@ -12,13 +12,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
-import android.app.KeyguardManager;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,14 +29,12 @@ import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
 import com.benatt.passwordsmanager.utils.Constants;
 import com.benatt.passwordsmanager.utils.DriveServiceHelper;
-import com.benatt.passwordsmanager.utils.SaveFile;
 import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.gson.GsonFactory;
@@ -48,6 +43,7 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -73,31 +69,27 @@ public class MainActivity extends AppCompatActivity {
     @Inject
     ViewModelFactory viewModelFactory;
 
-    private ActivityMainBinding binding;
-
-    private NavHostFragment navHost;
-    private NavController navController;
-    private BottomNavigationView bottomNav;
-
     private DriveServiceHelper driveServiceHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MainApp) getApplicationContext()).getPasswordsComponent().inject(this);
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
         mainViewModel = new ViewModelProvider(this, viewModelFactory).get(MainViewModel.class);
         sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
-        mainViewModel.message.observe(this, msg -> {
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        });
+        mainViewModel.message.observe(this, msg ->
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show());
 
         // setup bottom navigation
-        navHost = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        navController = navHost.getNavController();
-        bottomNav = binding.navView;
+        NavHostFragment navHost = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
+
+        assert navHost != null;
+        NavController navController = navHost.getNavController();
+        BottomNavigationView bottomNav = binding.navView;
 
         NavigationUI.setupWithNavController(bottomNav, navController);
 
@@ -138,24 +130,8 @@ public class MainActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
-            finish();
-        });
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> finish());
         builder.show();
-    }
-
-    private void formatAndSaveFile(String cipher) {
-        SimpleDateFormat sf = new SimpleDateFormat(Constants.BACKUP_DATE_FORMAT, Locale.getDefault());
-        Calendar calendar = Calendar.getInstance();
-        String now = sf.format(calendar);
-        String filePath = "backup_" + now;
-        try {
-            SaveFile.saveFile(
-                    cipher.getBytes(Charset.defaultCharset()),
-                    getApplicationInfo().dataDir + File.separator + filePath);
-        } catch (IOException e) {
-            Log.e(TAG, "formatAndSaveFile: Error " + e.getMessage(), e);
-        }
     }
 
     @Override
@@ -168,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.back_passwords) {
-            uploadFile(binding.getRoot());
+            uploadFile();
             return true;
         } else if (item.getItemId() == R.id.restore_password) {
             restorePasswords();
@@ -183,8 +159,7 @@ public class MainActivity extends AppCompatActivity {
     public void restorePasswords() {
         driveServiceHelper.getAllFiles()
                 .addOnSuccessListener(outputStream -> {
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bos = (ByteArrayOutputStream) outputStream;
+                    ByteArrayOutputStream bos = (ByteArrayOutputStream) outputStream;
                     String jsonCipher = bos.toString();
 
                     mainViewModel.decrypt(jsonCipher);
@@ -193,9 +168,8 @@ public class MainActivity extends AppCompatActivity {
                         List<Password> passwords = new Gson().fromJson(json, new TypeToken<List<Password>>() {}.getType());
                         mainViewModel.savePasswords(passwords);
                     });
-                }).addOnFailureListener(this, e -> {
-                    Toast.makeText(this, "Could not get file", Toast.LENGTH_SHORT).show();
-                });
+                }).addOnFailureListener(this, e ->
+                    Toast.makeText(this, "Could not get file", Toast.LENGTH_SHORT).show());
     }
 
     public void requestSignIn() {
@@ -231,14 +205,13 @@ public class MainActivity extends AppCompatActivity {
                     ).setApplicationName("Passwords").build();
 
                     driveServiceHelper = new DriveServiceHelper(googleDriveService);
-                }).addOnFailureListener(e -> {
-                    Log.e(TAG, "handleSignInIntent: Error " + e.getMessage(), e);
-                });
+                }).addOnFailureListener(e ->
+                    Log.e(TAG, "handleSignInIntent: Error " + e.getMessage(), e));
     }
 
     private List<Password> passwordList = new ArrayList<>();
 
-    public void uploadFile(View v) {
+    public void uploadFile() {
         createBackup();
     }
 
@@ -261,13 +234,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mainViewModel.encipheredPasswords.observe(this, encryptedText -> {
-            String filePath = "/storage/emulated/0/myfile.txt";
-
             SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
 
             String fileName = sp.format(new Date()) + ".txt";
 
-            FileOutputStream fos = null;
+            FileOutputStream fos;
             try {
                 fos = openFileOutput(fileName, Context.MODE_PRIVATE);
 

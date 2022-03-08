@@ -33,7 +33,7 @@ public class KeyStoreModule {
     @Singleton
     @Provides
     public SecretKey provideSecretKey() {
-        SecretKey secretKey = null;
+        SecretKey secretKey;
         try {
             KeyStore keyStore = getKeyStore();
             if (keyStore != null) {
@@ -46,24 +46,22 @@ public class KeyStoreModule {
             } else {
                 secretKey = createKeys();
             }
-        } catch (NoSuchAlgorithmException | UnrecoverableEntryException | InvalidAlgorithmParameterException | NoSuchProviderException | KeyStoreException e) {
-            if (e instanceof NoSuchAlgorithmException)
-                throw new IllegalStateException("The algorithm specified is not correct");
-            else if (e instanceof UnrecoverableEntryException)
-                throw new IllegalStateException("No KeyStore for this application");
-            else if (e instanceof InvalidAlgorithmParameterException)
-                throw new IllegalStateException("Invalid algorithm parameter");
-            else if (e instanceof NoSuchProviderException)
-                throw new IllegalStateException("No Such Provider");
-            else if (e instanceof KeyStoreException)
-                throw new IllegalStateException("Key store exception.");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("The algorithm specified is not correct");
+        } catch (UnrecoverableEntryException e) {
+            throw new IllegalStateException("No KeyStore for this application");
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new IllegalStateException("Invalid algorithm parameter");
+        } catch (NoSuchProviderException e) {
+            throw new IllegalStateException("No Such Provider");
+        } catch (KeyStoreException e) {
+            throw new IllegalStateException("Key store exception.");
         }
 
         return secretKey;
     }
 
     private SecretKey createKeys() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        Calendar start = Calendar.getInstance();
         Calendar end = Calendar.getInstance();
         end.add(Calendar.YEAR, 1);
 

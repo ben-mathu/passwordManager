@@ -10,12 +10,11 @@ import io.reactivex.Observable;
 /**
  * @author bernard
  */
-public abstract class Dao<T> {
-    public Observable<String> save(T item) { return Observable.just(""); }
-    public Observable<List<T>> getAll() { return Observable.just(null); }
-    public Observable<T> get(int value) { return Observable.just(null); }
+public interface Dao<T> {
+    Observable<String> save(T item);
+    Observable<List<T>> getAll();
 
-    public Completable delete(Password password) { return Completable.complete(); }
+    Completable delete(Password password);
 
-    public abstract Observable<String> saveAll(List<T> items);
+    Observable<String> saveAll(List<T> items);
 }

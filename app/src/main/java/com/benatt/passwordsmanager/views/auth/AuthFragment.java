@@ -18,26 +18,18 @@ import com.benatt.passwordsmanager.databinding.FragmentAuthBinding;
 
 import static android.app.Activity.RESULT_OK;
 
+import java.util.Objects;
+
 /**
  * @author bernard
  */
 public class AuthFragment extends Fragment {
     public static final int RESULT_CODE = 1101;
-    private KeyguardManager keyguardManager;
-
-    private FragmentAuthBinding binding;
-
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == RESULT_CODE) {
-            if (resultCode == RESULT_OK) {
-                NavHostFragment.findNavController(this).navigate(R.id.action_authentication_to_password_list);
-            }
+        if (requestCode == RESULT_CODE && resultCode == RESULT_OK) {
+            NavHostFragment.findNavController(this).navigate(R.id.action_authentication_to_password_list);
         }
     }
 
@@ -45,7 +37,9 @@ public class AuthFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager keyguardManager = (KeyguardManager) requireActivity().
+                getSystemService(Context.KEYGUARD_SERVICE);
+
         if (keyguardManager.isKeyguardSecure()) {
             Intent intent = keyguardManager.createConfirmDeviceCredentialIntent(
                     getString(R.string.auth_key_guard),
@@ -58,7 +52,7 @@ public class AuthFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentAuthBinding.inflate(inflater, container, false);
+        FragmentAuthBinding binding = FragmentAuthBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 }

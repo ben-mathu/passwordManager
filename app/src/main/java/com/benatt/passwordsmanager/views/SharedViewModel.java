@@ -4,9 +4,9 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 public class SharedViewModel extends ViewModel {
-    public MutableLiveData<Boolean> refreshList = new MutableLiveData<>();
+    public final MutableLiveData<Boolean> refreshListLiveData = new MutableLiveData<>();
 
     public void refreshList() {
-        refreshList.setValue(true);
+        refreshListLiveData.setValue(true);
     }
 }

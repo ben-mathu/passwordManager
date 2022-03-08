@@ -27,6 +27,7 @@ import javax.inject.Inject;
 
 import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
 import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
+import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT;
 
 /**
  * @author bernard
@@ -54,7 +55,7 @@ public class AddPasswordFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        ((MainApp) getActivity().getApplicationContext()).getPasswordsComponent().inject(this);
+        ((MainApp) requireActivity().getApplicationContext()).getPasswordsComponent().inject(this);
 
         binding = FragmentAddPasswordBinding.inflate(inflater, container, false);
         addPasswordViewModel = new ViewModelProvider(this, viewModelFactory).get(AddPasswordViewModel.class);
@@ -65,8 +66,6 @@ public class AddPasswordFragment extends Fragment {
             this.password.setCipher("");
             binding.setPassword(password);
         }
-
-//        binding.edtAccountName.setText(password.getAccountName());
 
         binding.btnShowPrefs.setOnClickListener(view -> {
             if (isShowingPrefs) {
@@ -98,7 +97,6 @@ public class AddPasswordFragment extends Fragment {
             binding.setPassword(password);
         }
 
-        //        binding.edtPassword.setText(plainPassword);
         binding.edtLength.setText(String.valueOf(plainPassword.length() > 0 ? plainPassword.length() : 12));
 
         binding.btnSetPassword
@@ -176,7 +174,7 @@ public class AddPasswordFragment extends Fragment {
     }
 
     private void showMessage(String message, View view) {
-        Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(view, message, LENGTH_SHORT).show();
     }
 
     @Override

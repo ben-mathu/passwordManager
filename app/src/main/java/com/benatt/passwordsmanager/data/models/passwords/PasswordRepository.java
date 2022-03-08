@@ -15,7 +15,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * @author bernard
  */
-public class PasswordRepository extends Dao<Password> {
+public class PasswordRepository implements Dao<Password> {
 
     private final PasswordDao passwordDao;
 

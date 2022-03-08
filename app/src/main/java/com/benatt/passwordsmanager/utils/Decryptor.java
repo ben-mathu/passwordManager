@@ -28,9 +28,13 @@ import static com.benatt.passwordsmanager.utils.Constants.DELIMITER;
 import static com.benatt.passwordsmanager.utils.Constants.INITIALIZATION_VECTOR;
 
 /**
- * @time 23/11/20
+ * @date 23/11/20
  */
 public class Decryptor {
+    private Decryptor() {
+        // Finders keepers
+    }
+
     public static final String TAG = Decryptor.class.getSimpleName();
 
     public static String decryptPassword(String cipherText) {
@@ -59,13 +63,12 @@ public class Decryptor {
             }
 
             byte[] passwordStr = Base64.decode(actualCipher, Base64.DEFAULT);
-//            String ivStr = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
             byte[] iv = Base64.decode(ivString, Base64.DEFAULT);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
 
             plainPassword = new String(cipher.doFinal(passwordStr), StandardCharsets.UTF_8);
         } catch (KeyStoreException | UnrecoverableEntryException | BadPaddingException | NoSuchAlgorithmException | CertificateException | InvalidKeyException | InvalidAlgorithmParameterException | NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
-//            Log.e(TAG, "decryptPassword: ", e);
+            Log.e(TAG, "decryptPassword: ", e);
         }
 
         return plainPassword;

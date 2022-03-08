@@ -30,8 +30,8 @@ public class AddPasswordViewModel extends ViewModel {
 
     MutableLiveData<String> msgView = new MutableLiveData<>();
     MutableLiveData<Boolean> goToPasswordsFragments = new MutableLiveData<>();
-    public MutableLiveData<String> editPassword = new MutableLiveData<>("");
-    public MutableLiveData<String> editAccountName = new MutableLiveData<>("");
+    public final MutableLiveData<String> editPassword;
+    public final MutableLiveData<String> editAccountName;
 
     private SecretKey secretKey;
     private PasswordRepository passwordRepository;
@@ -42,6 +42,8 @@ public class AddPasswordViewModel extends ViewModel {
     public AddPasswordViewModel(SecretKey secretKey, PasswordRepository passwordRepository) {
         this.secretKey = secretKey;
         this.passwordRepository = passwordRepository;
+        editPassword = new MutableLiveData<>("");
+        editAccountName = new MutableLiveData<>("");
     }
 
     public void savePassword(Password password, String newPassword) {
@@ -59,31 +61,32 @@ public class AddPasswordViewModel extends ViewModel {
                             msgView.setValue("An error occurred, please try again.");
                             Log.e(TAG, "savePassword: ", throwable);
                         });
-                return;
             } else {
                 String passwordStr = editPassword.getValue();
                 String accountNameStr = editAccountName.getValue();
-                if (passwordStr.isEmpty())
-                    msgView.setValue("Password is empty");
-                else if (accountNameStr.isEmpty())
-                    msgView.setValue("Please provide the account name");
-                else {
-                    String cipher = Encryptor.encrypt(secretKey, passwordStr);
-                    Password passwd = new Password();
-                    passwd.setAccountName(accountNameStr);
-                    passwd.setCipher(cipher);
-                    disposable = passwordRepository.save(passwd)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribeOn(Schedulers.io())
-                            .subscribe(value -> {
-                                        msgView.setValue(value);
-                                        goToPasswordsFragments.setValue(true);
-                                    },
-                                    throwable -> {
-                                        msgView.setValue("An error occurred, please try again.");
-                                        Log.e(TAG, "savePassword: ", throwable);
-                                    }
-                            );
+                if (passwordStr != null) {
+                    if (passwordStr.isEmpty())
+                        msgView.setValue("Password is empty");
+                    else if (accountNameStr.isEmpty())
+                        msgView.setValue("Please provide the account name");
+                    else {
+                        String cipher = Encryptor.encrypt(secretKey, passwordStr);
+                        Password passwd = new Password();
+                        passwd.setAccountName(accountNameStr);
+                        passwd.setCipher(cipher);
+                        disposable = passwordRepository.save(passwd)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribeOn(Schedulers.io())
+                                .subscribe(value -> {
+                                            msgView.setValue(value);
+                                            goToPasswordsFragments.setValue(true);
+                                        },
+                                        throwable -> {
+                                            msgView.setValue("An error occurred, please try again.");
+                                            Log.e(TAG, "savePassword: ", throwable);
+                                        }
+                                );
+                    }
                 }
             }
         } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
@@ -92,9 +95,8 @@ public class AddPasswordViewModel extends ViewModel {
     }
 
     public void unsubscribe() {
-        if (disposable != null)
-            if (!disposable.isDisposed())
-                disposable.dispose();
+        if (disposable != null && !disposable.isDisposed())
+            disposable.dispose();
     }
 
     public void deletePassword(Password password) {
@@ -107,9 +109,8 @@ public class AddPasswordViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
-        if (disposable != null)
-            if (!disposable.isDisposed())
-                disposable.dispose();
+        if (disposable != null && !disposable.isDisposed())
+            disposable.dispose();
 
         super.onCleared();
     }

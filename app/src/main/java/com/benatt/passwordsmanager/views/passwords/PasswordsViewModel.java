@@ -32,7 +32,7 @@ public class PasswordsViewModel extends ViewModel {
 
     MutableLiveData<String> msgEmpty = new MutableLiveData<>();
     MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
-    public MutableLiveData<String> encryptedString = new MutableLiveData<>();
+    public final MutableLiveData<String> encryptedString;
 
     @Inject
     public PasswordsViewModel(
@@ -40,6 +40,7 @@ public class PasswordsViewModel extends ViewModel {
             PasswordRepository passwordRepository) {
         this.secretKey = secretKey;
         this.passwordRepository = passwordRepository;
+        encryptedString = new MutableLiveData<>();
     }
 
     public void getPasswords() {
@@ -58,16 +59,13 @@ public class PasswordsViewModel extends ViewModel {
         try {
             String cipher = Encryptor.encrypt(secretKey, passwords);
             encryptedString.setValue(cipher);
-        } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+        } catch (BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
             e.printStackTrace();
         }
     }
 
     public void unsubscribe() {
-        if (disposable != null)
-            if (!disposable.isDisposed())
-                disposable.dispose();
+        if (disposable != null && !disposable.isDisposed())
+            disposable.dispose();
     }
 }

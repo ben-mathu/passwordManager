@@ -23,15 +23,16 @@ public class Encryptor {
 
     public static final int TAG_LENGTH_BYTES = 12;
 
+    private Encryptor() {
+        // Finders keepers
+    }
+
     public static String encrypt(SecretKey secretKey, String plainText) throws BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 
         byte[] iv = cipher.getIV();
         String encodediv = Base64.encodeToString(iv, Base64.DEFAULT);
-//        MainApp.getPreferences().edit()
-//                .putString(INITIALIZATION_VECTOR, encodediv)
-//                .apply();
         return encodediv + DELIMITER + Base64.encodeToString(
                 cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8)),
                 Base64.DEFAULT);

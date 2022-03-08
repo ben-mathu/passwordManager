@@ -24,17 +24,13 @@ import javax.inject.Inject;
  * @author bernard
  */
 public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> {
-    private PasswordItemBinding binding;
     private List<Password> passwords;
-
-    private boolean isDecrypted = false;
 
     @Inject
     ViewModelFactory viewModelFactory;
 
     private PasswordsViewHolder viewHolder;
 
-    private PasswordItemViewModel passwordItemViewModel;
     private final OnItemClick onItemClick;
     private Activity context;
 
@@ -47,7 +43,7 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
     @NonNull
     @Override
     public PasswordsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        binding = PasswordItemBinding.inflate(
+        PasswordItemBinding binding = PasswordItemBinding.inflate(
                 LayoutInflater.from(parent.getContext()),
                 parent, false);
 
@@ -59,7 +55,9 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
 
         typeface = ResourcesCompat.getFont(context, R.font.roboto_serif_regular);
         binding.btnDecrypt.setTypeface(typeface);
-        return this.viewHolder = new PasswordsViewHolder(binding, context);
+
+        this.viewHolder = new PasswordsViewHolder(binding, context);
+        return this.viewHolder;
     }
 
     @Override

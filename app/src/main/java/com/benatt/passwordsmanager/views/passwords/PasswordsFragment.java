@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,6 +37,7 @@ import static android.app.Activity.RESULT_OK;
 import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
 import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.REQUEST_CODE;
 import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.START_PASSWORD_DETAIL_SCREEN;
+import static com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -53,20 +53,15 @@ import java.util.Locale;
  * @author bernard
  */
 public class PasswordsFragment extends Fragment implements OnItemClick {
-    private static final String TAG = PasswordsFragment.class.getSimpleName();
-    private static final String PASSWORD_POS = "position";
+    private static final String BACKUP = "backup";
 
     private KeyguardManager keyguardManager;
 
     private PasswordsViewModel passwordsViewModel;
-    private SharedViewModel sharedViewModel;
 
     @Inject
     ViewModelFactory factory;
 
-    private FragmentPasswordsBinding binding;
-
-    private PasswordsAdapter adapter;
     private OnActivityResult onActivityResult;
     private List<Password> passwords = new ArrayList<>();
     private Password password;
@@ -77,14 +72,14 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
 
         passwordsViewModel.getPasswords();
 
-        this.keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+        keyguardManager = (KeyguardManager) requireActivity().getSystemService(Context.KEYGUARD_SERVICE);
         if (!keyguardManager.isDeviceSecure()) {
-            showDialog(binding.getRoot());
+            showDialog();
         }
     }
 
-    private void showDialog(View rootView) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    private void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         builder.setTitle("Attention");
         builder.setMessage("Please secure your device before using this app");
         builder.setCancelable(false);
@@ -98,11 +93,11 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        ((MainApp) getActivity().getApplicationContext()).getPasswordsComponent().inject(this);
-        binding = FragmentPasswordsBinding.inflate(inflater, container, false);
+        ((MainApp) requireActivity().getApplicationContext()).getPasswordsComponent().inject(this);
+        FragmentPasswordsBinding binding = FragmentPasswordsBinding.inflate(inflater, container, false);
 
         passwordsViewModel = new ViewModelProvider(this, factory).get(PasswordsViewModel.class);
-        sharedViewModel = new ViewModelProvider(getActivity()).get(SharedViewModel.class);
+        SharedViewModel sharedViewModel = new ViewModelProvider(getActivity()).get(SharedViewModel.class);
 
         passwordsViewModel.msgEmpty.observe(getViewLifecycleOwner(), s -> {
             showMessage(s, binding.getRoot());
@@ -110,12 +105,12 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
             binding.llPlaceholder.setVisibility(View.VISIBLE);
         });
 
-        adapter = new PasswordsAdapter(this, getActivity());
+        PasswordsAdapter adapter = new PasswordsAdapter(this, getActivity());
         binding.rvPasswordList.setLayoutManager(new LinearLayoutManager(getActivity()));
         binding.rvPasswordList.setAdapter(adapter);
 
-        passwordsViewModel.passwords.observe(getViewLifecycleOwner(), passwords -> {
-            this.passwords = passwords;
+        passwordsViewModel.passwords.observe(getViewLifecycleOwner(), passwordList -> {
+            this.passwords = passwordList;
             adapter.setPasswords(passwords);
 
             if (passwords.size() > 0 && binding.rvPasswordList.getVisibility() == View.GONE) {
@@ -124,7 +119,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
             }
         });
 
-        sharedViewModel.refreshList.observe(getViewLifecycleOwner(), isRefreshList -> {
+        sharedViewModel.refreshListLiveData.observe(getViewLifecycleOwner(), isRefreshList -> {
             if (isRefreshList)
                 passwordsViewModel.getPasswords();
         });
@@ -139,8 +134,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
 
     private void showMessage(String s, View rootView) {
         assert getActivity() != null;
-//        assert getActivity().getCurrentFocus() != null;
-        Snackbar.make(rootView, s, Snackbar.LENGTH_SHORT)
+        Snackbar.make(rootView, s, LENGTH_SHORT)
                 .show();
     }
 
@@ -159,7 +153,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     @Override
     public void startKeyguardActivity(OnActivityResult onActivityResult, int requestCode) {
         this.onActivityResult = onActivityResult;
-        KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+        keyguardManager = (KeyguardManager) requireActivity().getSystemService(Context.KEYGUARD_SERVICE);
         if (keyguardManager.isKeyguardSecure()) {
             Intent intent =  keyguardManager.createConfirmDeviceCredentialIntent(
                     getActivity().getString(R.string.auth_key_guard),
@@ -175,12 +169,10 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
             if (resultCode == RESULT_OK) {
                 this.onActivityResult.onResultReturned();
             }
-        } else if (requestCode == START_PASSWORD_DETAIL_SCREEN) {
-            if (resultCode == RESULT_OK) {
-                Bundle args = new Bundle();
-                args.putParcelable(EDIT_PASSWORD, password);
-                NavHostFragment.findNavController(this).navigate(R.id.fragment_add_password, args);
-            }
+        } else if (requestCode == START_PASSWORD_DETAIL_SCREEN && resultCode == RESULT_OK) {
+            Bundle args = new Bundle();
+            args.putParcelable(EDIT_PASSWORD, password);
+            NavHostFragment.findNavController(this).navigate(R.id.fragment_add_password, args);
         }
     }
 
@@ -209,12 +201,12 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
                     SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
                     try {
                         String fileName = sp.format(new Date()) + ".txt";
-                        File dir = new File("backup");
+                        File dir = new File(BACKUP);
                         if (dir.exists()) {
                             boolean isDirCreated = dir.mkdir();
                         }
 
-                        FileOutputStream fos = getActivity().openFileOutput("backup" + System.lineSeparator() + fileName, Context.MODE_PRIVATE);
+                        FileOutputStream fos = requireActivity().openFileOutput(BACKUP + System.lineSeparator() + fileName, Context.MODE_PRIVATE);
                         OutputStreamWriter writer = new OutputStreamWriter(fos);
 
                         writer.write(cipher);
@@ -222,11 +214,9 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
                         writer.flush();
                         writer.close();
 
-                        File file = getActivity().getDir("backup", Context.MODE_PRIVATE);
+                        File file = getActivity().getDir(BACKUP, Context.MODE_PRIVATE);
 
                         File fileItem = new File(file, fileName);
-
-//                        FileContent content = new FileContent("text/plain", fileItem);
                     } catch (NullPointerException | IOException e) {
                         e.printStackTrace();
                     }
