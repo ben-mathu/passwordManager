@@ -24,6 +24,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.benatt.passwordsmanager.MainApp;
@@ -90,9 +92,8 @@ public class MainActivity extends AppCompatActivity {
         mainViewModel = new ViewModelProvider(this, viewModelFactory).get(MainViewModel.class);
         sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
-        mainViewModel.message.observe(this, msg -> {
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        });
+        mainViewModel.message.observe(this, msg ->
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show());
 
         // setup bottom navigation
         navHost = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
@@ -138,9 +139,7 @@ public class MainActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
-            finish();
-        });
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> finish());
         builder.show();
     }
 
@@ -183,8 +182,7 @@ public class MainActivity extends AppCompatActivity {
     public void restorePasswords() {
         driveServiceHelper.getAllFiles()
                 .addOnSuccessListener(outputStream -> {
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bos = (ByteArrayOutputStream) outputStream;
+                    ByteArrayOutputStream bos = (ByteArrayOutputStream) outputStream;
                     String jsonCipher = bos.toString();
 
                     mainViewModel.decrypt(jsonCipher);
@@ -193,9 +191,9 @@ public class MainActivity extends AppCompatActivity {
                         List<Password> passwords = new Gson().fromJson(json, new TypeToken<List<Password>>() {}.getType());
                         mainViewModel.savePasswords(passwords);
                     });
-                }).addOnFailureListener(this, e -> {
-                    Toast.makeText(this, "Could not get file", Toast.LENGTH_SHORT).show();
-                });
+                }).addOnFailureListener(this, e ->
+                        Toast.makeText(this, "Could not get file", Toast.LENGTH_SHORT)
+                                .show());
     }
 
     public void requestSignIn() {
@@ -231,9 +229,8 @@ public class MainActivity extends AppCompatActivity {
                     ).setApplicationName("Passwords").build();
 
                     driveServiceHelper = new DriveServiceHelper(googleDriveService);
-                }).addOnFailureListener(e -> {
-                    Log.e(TAG, "handleSignInIntent: Error " + e.getMessage(), e);
-                });
+                }).addOnFailureListener(e ->
+                        Log.e(TAG, "handleSignInIntent: Error " + e.getMessage(), e));
     }
 
     private List<Password> passwordList = new ArrayList<>();
@@ -267,9 +264,7 @@ public class MainActivity extends AppCompatActivity {
 
             String fileName = sp.format(new Date()) + ".txt";
 
-            FileOutputStream fos = null;
-            try {
-                fos = openFileOutput(fileName, Context.MODE_PRIVATE);
+            try (FileOutputStream fos = openFileOutput(fileName, Context.MODE_PRIVATE)) {
 
                 OutputStreamWriter writer = new OutputStreamWriter(fos);
 
