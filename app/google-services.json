@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "869838142412",
+    "project_id": "crypt-code-59286",
+    "storage_bucket": "crypt-code-59286.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869838142412:android:e777651ebd784184153b69",
+        "android_client_info": {
+          "package_name": "com.benatt.passwordsmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "869838142412-t9uvdlatvhusjja5d8abj97kk2qh1vlf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.benatt.passwordsmanager",
+            "certificate_hash": "f2417a1abf53373654fe028435d866ffbf984db7"
+          }
+        },
+        {
+          "client_id": "869838142412-c52bn18c3mbjdhesp7te36o3i371q2qf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWMT8jUQjUnHw-QMAaG0HVYWeNWUGvh_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "869838142412-c52bn18c3mbjdhesp7te36o3i371q2qf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

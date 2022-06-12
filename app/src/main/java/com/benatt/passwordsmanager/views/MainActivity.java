@@ -17,6 +17,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -24,6 +25,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.benatt.passwordsmanager.MainApp;
@@ -35,6 +38,7 @@ import com.benatt.passwordsmanager.utils.DriveServiceHelper;
 import com.benatt.passwordsmanager.utils.SaveFile;
 import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
@@ -90,9 +94,8 @@ public class MainActivity extends AppCompatActivity {
         mainViewModel = new ViewModelProvider(this, viewModelFactory).get(MainViewModel.class);
         sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
-        mainViewModel.message.observe(this, msg -> {
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        });
+        mainViewModel.message.observe(this, msg ->
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show());
 
         // setup bottom navigation
         navHost = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
@@ -128,19 +131,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startAlertActivity() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder
+                = new AlertDialog.Builder(
+                        this, android.R.style.Theme_Material_Dialog_Alert);
+
         builder.setTitle(R.string.disclaimer);
         builder.setMessage(R.string.disclaimer_message);
+        builder.setCancelable(false);
         builder.setPositiveButton(R.string.ok, (dialog, which) -> {
             MainApp.getPreferences().edit()
-                    .putBoolean(IS_DISCLAIMER_SHOWN, false)
+                    .putBoolean(IS_DISCLAIMER_SHOWN, true)
                     .apply();
             dialog.dismiss();
         });
 
-        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
-            finish();
-        });
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> finish());
         builder.show();
     }
 
@@ -183,8 +188,7 @@ public class MainActivity extends AppCompatActivity {
     public void restorePasswords() {
         driveServiceHelper.getAllFiles()
                 .addOnSuccessListener(outputStream -> {
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bos = (ByteArrayOutputStream) outputStream;
+                    ByteArrayOutputStream bos = (ByteArrayOutputStream) outputStream;
                     String jsonCipher = bos.toString();
 
                     mainViewModel.decrypt(jsonCipher);
@@ -193,18 +197,19 @@ public class MainActivity extends AppCompatActivity {
                         List<Password> passwords = new Gson().fromJson(json, new TypeToken<List<Password>>() {}.getType());
                         mainViewModel.savePasswords(passwords);
                     });
-                }).addOnFailureListener(this, e -> {
-                    Toast.makeText(this, "Could not get file", Toast.LENGTH_SHORT).show();
-                });
+                }).addOnFailureListener(this, e ->
+                        Toast.makeText(this, "Could not get file", Toast.LENGTH_SHORT)
+                                .show());
     }
 
     public void requestSignIn() {
-        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder()
-                .requestEmail()
+        GoogleSignInOptions googleSignInOptions
+                = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
                 .build();
 
-        if (!googleSignInOptions.isIdTokenRequested()) {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account == null) {
             GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(this,
                     googleSignInOptions);
 
@@ -231,9 +236,8 @@ public class MainActivity extends AppCompatActivity {
                     ).setApplicationName("Passwords").build();
 
                     driveServiceHelper = new DriveServiceHelper(googleDriveService);
-                }).addOnFailureListener(e -> {
-                    Log.e(TAG, "handleSignInIntent: Error " + e.getMessage(), e);
-                });
+                }).addOnFailureListener(e ->
+                        Log.e(TAG, "handleSignInIntent: Error " + e.getMessage(), e));
     }
 
     private List<Password> passwordList = new ArrayList<>();
@@ -267,9 +271,7 @@ public class MainActivity extends AppCompatActivity {
 
             String fileName = sp.format(new Date()) + ".txt";
 
-            FileOutputStream fos = null;
-            try {
-                fos = openFileOutput(fileName, Context.MODE_PRIVATE);
+            try (FileOutputStream fos = openFileOutput(fileName, Context.MODE_PRIVATE)) {
 
                 OutputStreamWriter writer = new OutputStreamWriter(fos);
 
