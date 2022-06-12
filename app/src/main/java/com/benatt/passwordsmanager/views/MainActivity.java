@@ -17,6 +17,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -37,6 +38,7 @@ import com.benatt.passwordsmanager.utils.DriveServiceHelper;
 import com.benatt.passwordsmanager.utils.SaveFile;
 import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
@@ -129,12 +131,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startAlertActivity() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder
+                = new AlertDialog.Builder(
+                        this, android.R.style.Theme_Material_Dialog_Alert);
+
         builder.setTitle(R.string.disclaimer);
         builder.setMessage(R.string.disclaimer_message);
+        builder.setCancelable(false);
         builder.setPositiveButton(R.string.ok, (dialog, which) -> {
             MainApp.getPreferences().edit()
-                    .putBoolean(IS_DISCLAIMER_SHOWN, false)
+                    .putBoolean(IS_DISCLAIMER_SHOWN, true)
                     .apply();
             dialog.dismiss();
         });
@@ -197,12 +203,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void requestSignIn() {
-        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder()
-                .requestEmail()
+        GoogleSignInOptions googleSignInOptions
+                = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
                 .build();
 
-        if (!googleSignInOptions.isIdTokenRequested()) {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account == null) {
             GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(this,
                     googleSignInOptions);
 

@@ -84,7 +84,10 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     }
 
     private void showDialog(View rootView) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder
+                = new AlertDialog.Builder(getActivity(),
+                        android.R.style.Theme_Material_Dialog_Alert);
+
         builder.setTitle("Attention");
         builder.setMessage("Please secure your device before using this app");
         builder.setCancelable(false);
