@@ -75,7 +75,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     public void onStart() {
         super.onStart();
 
-        passwordsViewModel.getPasswords();
+        sharedViewModel.getPasswords();
 
         this.keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
         if (!keyguardManager.isDeviceSecure()) {
@@ -105,9 +105,9 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         binding = FragmentPasswordsBinding.inflate(inflater, container, false);
 
         passwordsViewModel = new ViewModelProvider(this, factory).get(PasswordsViewModel.class);
-        sharedViewModel = new ViewModelProvider(getActivity()).get(SharedViewModel.class);
+        sharedViewModel = new ViewModelProvider(getActivity(), factory).get(SharedViewModel.class);
 
-        passwordsViewModel.msgEmpty.observe(getViewLifecycleOwner(), s -> {
+        sharedViewModel.msgEmpty.observe(getViewLifecycleOwner(), s -> {
             showMessage(s, binding.getRoot());
             binding.rvPasswordList.setVisibility(View.GONE);
             binding.llPlaceholder.setVisibility(View.VISIBLE);
@@ -117,7 +117,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         binding.rvPasswordList.setLayoutManager(new LinearLayoutManager(getActivity()));
         binding.rvPasswordList.setAdapter(adapter);
 
-        passwordsViewModel.passwords.observe(getViewLifecycleOwner(), passwords -> {
+        sharedViewModel.passwords.observe(getViewLifecycleOwner(), passwords -> {
             this.passwords = passwords;
             adapter.setPasswords(passwords);
 
@@ -129,7 +129,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
 
         sharedViewModel.refreshList.observe(getViewLifecycleOwner(), isRefreshList -> {
             if (isRefreshList)
-                passwordsViewModel.getPasswords();
+                sharedViewModel.getPasswords();
         });
 
         binding.btnAddPassword.setOnClickListener(
@@ -145,12 +145,6 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
 //        assert getActivity().getCurrentFocus() != null;
         Snackbar.make(rootView, s, Snackbar.LENGTH_SHORT)
                 .show();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        passwordsViewModel.unsubscribe();
     }
 
     @Override
@@ -201,7 +195,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
             Gson gson = new Gson();
 
             if (this.passwords.isEmpty()) {
-                this.passwordsViewModel.getPasswords();
+                this.sharedViewModel.getPasswords();
             }
 
             if (!this.passwords.isEmpty()) {
