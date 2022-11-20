@@ -37,4 +37,5 @@
         You can only recover the passwords on the same device.\n\n
         If you still want to continue please OK button, otherwise press CANCEL.
         Also keep the app so that you can receive updates for when I finally fix this.</string>
+    <string name="search_title">Search Accounts</string>
 </resources>

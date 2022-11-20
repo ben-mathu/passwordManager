@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.benatt.passwordsmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordsmanager.views.MainViewModel;
 import com.benatt.passwordsmanager.data.models.user.UserRepository;
+import com.benatt.passwordsmanager.views.SharedViewModel;
 import com.benatt.passwordsmanager.views.addpassword.AddPasswordViewModel;
 import com.benatt.passwordsmanager.views.passwords.PasswordsViewModel;
 
@@ -39,12 +40,15 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
             return (T) viewModel;
         } else if (modelClass.isAssignableFrom(PasswordsViewModel.class)) {
 
-            PasswordsViewModel passwordsViewModel = new PasswordsViewModel(secretKey, passwordRepository);
+            PasswordsViewModel passwordsViewModel = new PasswordsViewModel(secretKey);
             return (T) passwordsViewModel;
         } else if (modelClass.isAssignableFrom(AddPasswordViewModel.class)) {
 
             AddPasswordViewModel addPasswordViewModel = new AddPasswordViewModel(secretKey, passwordRepository);
             return (T) addPasswordViewModel;
+        } else if (modelClass.isAssignableFrom(SharedViewModel.class)) {
+            SharedViewModel sharedViewModel = new SharedViewModel(passwordRepository);
+            return (T) sharedViewModel;
         }
 
         throw new IllegalArgumentException("Unknown class");

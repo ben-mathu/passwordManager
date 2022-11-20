@@ -6,27 +6,22 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
-import android.app.KeyguardManager;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.benatt.passwordsmanager.MainApp;
@@ -43,7 +38,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.gson.GsonFactory;
@@ -84,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNav;
 
     private DriveServiceHelper driveServiceHelper;
+    private List<Password> passwords = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
         mainViewModel = new ViewModelProvider(this, viewModelFactory).get(MainViewModel.class);
-        sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
+        sharedViewModel = new ViewModelProvider(this, viewModelFactory).get(SharedViewModel.class);
 
         mainViewModel.message.observe(this, msg ->
                 Toast.makeText(this, msg, Toast.LENGTH_SHORT).show());
@@ -167,7 +162,42 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.option_menu, menu);
+
+        MenuItem search = menu.findItem(R.id.search);
+        SearchView searchview = (SearchView) search.getActionView();
+        searchview.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                sharedViewModel.passwords.setValue(filter(newText));
+                return true;
+            }
+        });
         return super.onCreateOptionsMenu(menu);
+    }
+
+    private List<Password> filter(String nextText) {
+        List<Password> passwordList = new ArrayList<>();
+        if (passwords.isEmpty()) {
+            passwords = sharedViewModel.passwords.getValue();
+        }
+        assert passwords != null;
+        for (Password password : passwords) {
+            if (passwordMatch(password, nextText)) {
+                passwordList.add(password);
+            }
+        }
+        return passwordList;
+    }
+
+    private boolean passwordMatch(Password password, String searchText) {
+        String accName = password.getAccountName().toLowerCase(Locale.ROOT);
+        String searchTxt = searchText.toLowerCase(Locale.ROOT);
+        return accName.contains(searchTxt);
     }
 
     @Override
