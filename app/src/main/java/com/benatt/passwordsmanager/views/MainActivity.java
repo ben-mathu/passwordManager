@@ -2,8 +2,27 @@ package com.benatt.passwordsmanager.views;
 
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
@@ -12,17 +31,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
-
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Toast;
 
 import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
@@ -45,6 +53,13 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.common.Barcode;
+import com.google.mlkit.vision.common.InputImage;
+
+import net.glxn.qrgen.android.QRCode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -79,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
 
     private DriveServiceHelper driveServiceHelper;
     private List<Password> passwords = new ArrayList<>();
+    private List<Password> passwordList = new ArrayList<>();
+
+    private Gson gson = new Gson();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +141,14 @@ public class MainActivity extends AppCompatActivity {
 
         if (!isDisclaimerShown)
             startAlertActivity();
+
+        mainViewModel.getPasswords();
+        mainViewModel.passwords.observe(this, passwords -> {
+
+            String json = new Gson().toJson(passwords);
+            mainViewModel.encryptPasswords(json);
+            passwordList = passwords;
+        });
     }
 
     private void startAlertActivity() {
@@ -211,8 +237,71 @@ public class MainActivity extends AppCompatActivity {
         } else if (item.getItemId() == R.id.refresh_password_list) {
             sharedViewModel.refreshList();
             return true;
+        } else if (item.getItemId() == R.id.generate_qr_code) {
+            generateQRCode();
+            return true;
+        } else if (item.getItemId() == R.id.scan_qr) {
+            scanQRCode();
+            return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void scanQRCode() {
+        Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+        intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+
+        startActivityForResult(intent, 1005);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == 1005) {
+            String jsonPasswords = data.getStringExtra("SCAN_RESULT");
+            List<Password> pList = gson.fromJson(jsonPasswords, new TypeToken<List<Password>>() {}.getType());
+
+            mainViewModel.savePasswords(pList);
+        }
+    }
+
+    private void generateQRCode() {
+        String passwordsJson = gson.toJson(passwordList);
+
+        Bitmap bitmap = QRCode.from(passwordsJson).bitmap();
+        ImageView imageView = new ImageView(this);
+        imageView.setImageBitmap(bitmap);
+
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.width = 300;
+        params.height = 300;
+        params.horizontalMargin = 20;
+        params.verticalMargin = 20;
+
+        WindowManager.LayoutParams textParams = new WindowManager.LayoutParams();
+        textParams.horizontalMargin = 20;
+        textParams.verticalMargin = 20;
+
+        imageView.setLayoutParams(params);
+
+        TextView text = new TextView(this);
+        text.setPadding(50, 0, 0, 50);
+        text.setText("Scan the QR code to migrate passwords");
+        text.setTextColor(getResources().getColor(R.color.white));
+        text.setTextSize(21);
+        text.setLayoutParams(textParams);
+
+        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setGravity(Gravity.CENTER);
+        linearLayout.addView(text);
+        linearLayout.addView(imageView);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this,
+                android.R.style.Theme_Material_Dialog_Alert);
+        builder.setView(linearLayout);
+        builder.setPositiveButton("Close", (dialogInterface, i) ->
+                dialogInterface.dismiss()).show();
     }
 
     public void restorePasswords() {
@@ -270,8 +359,6 @@ public class MainActivity extends AppCompatActivity {
                         Log.e(TAG, "handleSignInIntent: Error " + e.getMessage(), e));
     }
 
-    private List<Password> passwordList = new ArrayList<>();
-
     public void uploadFile(View v) {
         createBackup();
     }
@@ -286,13 +373,6 @@ public class MainActivity extends AppCompatActivity {
         if (passwordList.isEmpty()) {
             mainViewModel.getPasswords();
         }
-
-        mainViewModel.passwords.observe(this, passwords -> {
-
-            String json = new Gson().toJson(passwords);
-            mainViewModel.encryptPasswords(json);
-
-        });
 
         mainViewModel.encipheredPasswords.observe(this, encryptedText -> {
             String filePath = "/storage/emulated/0/myfile.txt";
