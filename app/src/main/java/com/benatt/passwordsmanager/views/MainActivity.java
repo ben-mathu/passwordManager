@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -58,8 +59,10 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
-
-import net.glxn.qrgen.android.QRCode;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -238,7 +241,11 @@ public class MainActivity extends AppCompatActivity {
             sharedViewModel.refreshList();
             return true;
         } else if (item.getItemId() == R.id.generate_qr_code) {
-            generateQRCode();
+            try {
+                generateQRCode();
+            } catch (WriterException e) {
+                e.printStackTrace();
+            }
             return true;
         } else if (item.getItemId() == R.id.scan_qr) {
             scanQRCode();
@@ -265,12 +272,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void generateQRCode() {
+    private void generateQRCode() throws WriterException {
         String passwordsJson = gson.toJson(passwordList);
 
-        Bitmap bitmap = QRCode.from(passwordsJson).bitmap();
+        QRCodeWriter codeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = codeWriter.encode(passwordsJson, BarcodeFormat.QR_CODE, 300, 300);
+        int width = bitMatrix.getWidth();
+        int height = bitMatrix.getHeight();
+        Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+            }
+        }
         ImageView imageView = new ImageView(this);
-        imageView.setImageBitmap(bitmap);
+        imageView.setImageBitmap(bmp);
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         params.width = 300;
