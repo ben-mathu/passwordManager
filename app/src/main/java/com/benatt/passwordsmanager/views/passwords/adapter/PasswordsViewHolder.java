@@ -1,16 +1,14 @@
 package com.benatt.passwordsmanager.views.passwords.adapter;
 
+import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
+
 import android.app.Activity;
-import android.app.KeyguardManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.CountDownTimer;
-import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
-import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.benatt.passwordsmanager.R;
@@ -18,8 +16,6 @@ import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.PasswordItemBinding;
 import com.benatt.passwordsmanager.utils.OnActivityResult;
 import com.benatt.passwordsmanager.views.passwords.OnItemClick;
-
-import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
 
 /**
  * @author bernard
@@ -51,7 +47,7 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
         binding.btnDecrypt.setOnClickListener(view -> {
             if (!isDecrypted) {
                 onItemClick.startKeyguardActivity(() -> {
-                    binding.passwordValue.setText(decryptPassword(password.getCipher()));
+                    binding.passwordValue.setText(decryptPassword(password.getCipher(), null));
                     binding.btnDecrypt.setText(R.string.hide_password);
                     binding.lockPassword.setImageDrawable(
                             context.getResources().getDrawable(R.drawable.ic_unlocked_password)
@@ -78,7 +74,7 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
 
             ClipData clip = ClipData
                     .newPlainText("password",
-                            decryptPassword(password.getCipher()));
+                            decryptPassword(password.getCipher(), null));
             cm.setPrimaryClip(clip);
             Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show();
         });

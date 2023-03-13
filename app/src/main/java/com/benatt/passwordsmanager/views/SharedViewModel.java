@@ -1,10 +1,8 @@
 package com.benatt.passwordsmanager.views;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.benatt.passwordsmanager.data.models.Dao;
 import com.benatt.passwordsmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 
@@ -20,6 +18,7 @@ public class SharedViewModel extends ViewModel {
     public MutableLiveData<Boolean> refreshList = new MutableLiveData<>();
     public MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
     public MutableLiveData<String> msgEmpty = new MutableLiveData<>();
+    public MutableLiveData<Boolean> isLogin = new MutableLiveData<>();
     private Disposable disposable;
     private final PasswordRepository passwordRepository;
 
@@ -33,7 +32,7 @@ public class SharedViewModel extends ViewModel {
     }
 
     public void getPasswords() {
-        disposable  = passwordRepository.getAll()
+        disposable = passwordRepository.getAll()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(passwordsList -> {

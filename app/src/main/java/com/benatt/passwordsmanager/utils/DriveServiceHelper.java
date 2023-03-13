@@ -1,5 +1,7 @@
 package com.benatt.passwordsmanager.utils;
 
+import static com.benatt.passwordsmanager.utils.Constants.BACKUP_FOLDER;
+
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.api.client.http.FileContent;
@@ -48,9 +50,34 @@ public class DriveServiceHelper {
 
     public Task<OutputStream> getAllFiles() {
         return Tasks.call(executor, () -> {
-            FileList driveFiles = drive.files().list().execute();
+            FileList driverList = null;
+            File backupFolder = null;
+            String query = "mimeType = 'application/vnd.google-apps.folder'" +
+                    " and 'root' in parents and trashed = false";
+            try {
+                driverList = drive.files().list().setQ(query)
+                        .setFields("files(id,name)").execute();
 
-            List<File> fileList = driveFiles.getFiles();
+                List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
+
+                for (com.google.api.services.drive.model.File file : fileList) {
+                    if (BACKUP_FOLDER.equals(file.getName())) {
+                        backupFolder = file;
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // Get the security certificate from Google drive
+            query = "mimeType = 'text/plain'" +
+                    " and '" + backupFolder.getId() + "' in parents and trashed = false";
+            FileList backupFolderList = drive.files().list().setQ(query)
+                    .setFields("files(id,name)").execute();
+
+            List<File> fileList = backupFolderList.getFiles();
+
             for (int i = 0; i < fileList.size(); i++) {
                 if (i+1 == fileList.size()) break;
 

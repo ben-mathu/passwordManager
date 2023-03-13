@@ -1,5 +1,7 @@
 package com.benatt.passwordsmanager.di.modules;
 
+import static com.benatt.passwordsmanager.utils.Constants.DB_NAME;
+
 import android.app.Application;
 
 import androidx.room.Room;
@@ -12,8 +14,6 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Reusable;
-
-import static com.benatt.passwordsmanager.utils.Constants.DB_NAME;
 
 /**
  * @author bernard

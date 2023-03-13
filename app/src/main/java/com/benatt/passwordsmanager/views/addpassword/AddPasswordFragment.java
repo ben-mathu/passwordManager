@@ -1,5 +1,8 @@
 package com.benatt.passwordsmanager.views.addpassword;
 
+import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
+import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,9 +27,6 @@ import com.google.android.material.snackbar.Snackbar;
 import java.security.SecureRandom;
 
 import javax.inject.Inject;
-
-import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
-import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
 
 /**
  * @author bernard
@@ -93,7 +93,7 @@ public class AddPasswordFragment extends Fragment {
         // set password when the user is editing the password details
         String plainPassword = "";
         if (!password.getCipher().isEmpty()) {
-            plainPassword = decryptPassword(password.getCipher());
+            plainPassword = decryptPassword(password.getCipher(), null);
             this.password.setCipher(plainPassword);
             binding.setPassword(password);
         }

@@ -11,6 +11,8 @@ import com.benatt.passwordsmanager.utils.Encryptor;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -33,13 +35,15 @@ public class AddPasswordViewModel extends ViewModel {
     public MutableLiveData<String> editPassword = new MutableLiveData<>("");
     public MutableLiveData<String> editAccountName = new MutableLiveData<>("");
 
+    private PublicKey publicKey;
     private SecretKey secretKey;
     private PasswordRepository passwordRepository;
 
     private Disposable disposable;
 
     @Inject
-    public AddPasswordViewModel(SecretKey secretKey, PasswordRepository passwordRepository) {
+    public AddPasswordViewModel(PublicKey publicKey, SecretKey secretKey, PasswordRepository passwordRepository) {
+        this.publicKey = publicKey;
         this.secretKey = secretKey;
         this.passwordRepository = passwordRepository;
     }
@@ -47,7 +51,7 @@ public class AddPasswordViewModel extends ViewModel {
     public void savePassword(Password password, String newPassword) {
         try {
             if (password != null) {
-                String cipher = Encryptor.encrypt(secretKey, newPassword);
+                String cipher = Encryptor.prevEncrypt(secretKey, newPassword);
                 password.setCipher(cipher);
                 disposable = passwordRepository.save(password)
                         .observeOn(AndroidSchedulers.mainThread())
@@ -59,7 +63,6 @@ public class AddPasswordViewModel extends ViewModel {
                             msgView.setValue("An error occurred, please try again.");
                             Log.e(TAG, "savePassword: ", throwable);
                         });
-                return;
             } else {
                 String passwordStr = editPassword.getValue();
                 String accountNameStr = editAccountName.getValue();
@@ -68,7 +71,7 @@ public class AddPasswordViewModel extends ViewModel {
                 else if (accountNameStr.isEmpty())
                     msgView.setValue("Please provide the account name");
                 else {
-                    String cipher = Encryptor.encrypt(secretKey, passwordStr);
+                    String cipher = Encryptor.encrypt(publicKey, passwordStr);
                     Password passwd = new Password();
                     passwd.setAccountName(accountNameStr);
                     passwd.setCipher(cipher);

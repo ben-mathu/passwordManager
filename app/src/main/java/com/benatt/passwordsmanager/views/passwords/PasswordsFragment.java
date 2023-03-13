@@ -1,11 +1,14 @@
 package com.benatt.passwordsmanager.views.passwords;
 
+import static android.app.Activity.RESULT_OK;
+import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
+import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.REQUEST_CODE;
+import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.START_PASSWORD_DETAIL_SCREEN;
+
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,9 +18,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -32,13 +35,6 @@ import com.benatt.passwordsmanager.views.passwords.adapter.PasswordsAdapter;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 
-import javax.inject.Inject;
-
-import static android.app.Activity.RESULT_OK;
-import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
-import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.REQUEST_CODE;
-import static com.benatt.passwordsmanager.views.passwords.adapter.PasswordsViewHolder.START_PASSWORD_DETAIL_SCREEN;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -49,12 +45,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import javax.inject.Inject;
+
 /**
  * @author bernard
  */
 public class PasswordsFragment extends Fragment implements OnItemClick {
     private static final String TAG = PasswordsFragment.class.getSimpleName();
     private static final String PASSWORD_POS = "position";
+    private NavController controller;
 
     private KeyguardManager keyguardManager;
 
@@ -76,26 +75,6 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         super.onStart();
 
         sharedViewModel.getPasswords();
-
-        this.keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
-        if (!keyguardManager.isDeviceSecure()) {
-            showDialog(binding.getRoot());
-        }
-    }
-
-    private void showDialog(View rootView) {
-        AlertDialog.Builder builder
-                = new AlertDialog.Builder(getActivity(),
-                        android.R.style.Theme_Material_Dialog_Alert);
-
-        builder.setTitle("Attention");
-        builder.setMessage("Please secure your device before using this app");
-        builder.setCancelable(false);
-        builder.setPositiveButton("ok", ((dialog, which) -> {
-            Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
-            getActivity().startActivity(intent);
-        }));
-        builder.show();
     }
 
     @Nullable
@@ -103,6 +82,8 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ((MainApp) getActivity().getApplicationContext()).getPasswordsComponent().inject(this);
         binding = FragmentPasswordsBinding.inflate(inflater, container, false);
+
+        controller = NavHostFragment.findNavController(this);
 
         passwordsViewModel = new ViewModelProvider(this, factory).get(PasswordsViewModel.class);
         sharedViewModel = new ViewModelProvider(getActivity(), factory).get(SharedViewModel.class);
@@ -169,14 +150,14 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
+            if (resultCode == RESULT_OK && this.onActivityResult != null) {
                 this.onActivityResult.onResultReturned();
             }
         } else if (requestCode == START_PASSWORD_DETAIL_SCREEN) {
             if (resultCode == RESULT_OK) {
                 Bundle args = new Bundle();
                 args.putParcelable(EDIT_PASSWORD, password);
-                NavHostFragment.findNavController(this).navigate(R.id.fragment_add_password, args);
+                controller.navigate(R.id.fragment_add_password, args);
             }
         }
     }

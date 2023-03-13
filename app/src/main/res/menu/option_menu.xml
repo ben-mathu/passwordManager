@@ -36,4 +36,10 @@
         android:icon="@drawable/ic_action_search"
         app:showAsAction="collapseActionView|always"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <item
+        android:id="@+id/sign_out"
+        android:title="@string/sign_out"
+        android:icon="@drawable/ic_action_refresh"
+        app:showAsAction="ifRoom" />
 </menu>

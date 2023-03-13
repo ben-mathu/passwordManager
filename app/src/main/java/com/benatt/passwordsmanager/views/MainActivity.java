@@ -1,14 +1,26 @@
 package com.benatt.passwordsmanager.views;
 
+import static com.benatt.passwordsmanager.utils.CertUtil.exportPublicKey;
+import static com.benatt.passwordsmanager.utils.CertUtil.getPublicKey;
+import static com.benatt.passwordsmanager.utils.Constants.ALIAS;
+import static com.benatt.passwordsmanager.utils.Constants.BACKUP_FOLDER;
+import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
+import static com.benatt.passwordsmanager.utils.Constants.PUBLIC_KEY_FILE_NAME;
+import static com.benatt.passwordsmanager.utils.Constants.IS_CERT_UPLOADED;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
+import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN;
+import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN_WITH_GOOGLE;
 
+import android.app.KeyguardManager;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -21,7 +33,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -33,6 +44,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
+import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
@@ -45,20 +57,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.http.FileContent;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import com.google.api.services.drive.model.FileList;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.google.mlkit.vision.barcode.BarcodeScanner;
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
-import com.google.mlkit.vision.barcode.BarcodeScanning;
-import com.google.mlkit.vision.barcode.common.Barcode;
-import com.google.mlkit.vision.common.InputImage;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
@@ -70,8 +81,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.security.KeyStore;
+import java.security.PublicKey;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -82,6 +96,10 @@ import javax.inject.Inject;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int REQUEST_CODE_GOOGLE_SIGN_IN = 3001;
+    private static final int PIN_REQUEST_CODE = 1102;
+
+    private KeyguardManager keyguardManager;
 
     private MainViewModel mainViewModel;
     private SharedViewModel sharedViewModel;
@@ -95,11 +113,14 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private BottomNavigationView bottomNav;
 
-    private DriveServiceHelper driveServiceHelper;
     private List<Password> passwords = new ArrayList<>();
     private List<Password> passwordList = new ArrayList<>();
 
     private Gson gson = new Gson();
+    private GoogleSignInOptions gso;
+    private GoogleSignInClient gsc;
+    private GoogleSignInAccount account;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,9 +130,15 @@ public class MainActivity extends AppCompatActivity {
 
         mainViewModel = new ViewModelProvider(this, viewModelFactory).get(MainViewModel.class);
         sharedViewModel = new ViewModelProvider(this, viewModelFactory).get(SharedViewModel.class);
+        
+        preferences = MainApp.getPreferences();
 
-        mainViewModel.message.observe(this, msg ->
-                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show());
+        mainViewModel.message.observe(this, msg -> {
+            if (binding.rlProgressBar.getVisibility() == View.VISIBLE)
+                binding.rlProgressBar.setVisibility(View.GONE);
+
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        });
 
         // setup bottom navigation
         navHost = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
@@ -132,14 +159,17 @@ public class MainActivity extends AppCompatActivity {
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             if (destination.getId() == R.id.fragment_passwords) {
                 bottomNav.setVisibility(View.VISIBLE);
+            } else if (destination.getId() == R.id.fragment_auth) {
+                if (preferences.getBoolean(SIGNED_IN_WITH_GOOGLE, false)) {
+                    navController.navigate(R.id.fragment_passwords);
+                }
+                bottomNav.setVisibility(View.GONE);
             } else {
                 bottomNav.setVisibility(View.GONE);
             }
         });
 
-        requestSignIn();
-
-        boolean isDisclaimerShown = MainApp.getPreferences()
+        boolean isDisclaimerShown = preferences
                 .getBoolean(IS_DISCLAIMER_SHOWN, false);
 
         if (!isDisclaimerShown)
@@ -147,23 +177,116 @@ public class MainActivity extends AppCompatActivity {
 
         mainViewModel.getPasswords();
         mainViewModel.passwords.observe(this, passwords -> {
-
-            String json = new Gson().toJson(passwords);
-            mainViewModel.encryptPasswords(json);
             passwordList = passwords;
         });
+
+        mainViewModel.prevList.observe(this, list -> {
+            mainViewModel.useCurrentEncryptionScheme(list);
+        });
+
+        sharedViewModel.isLogin.observe(this, isLoggedIn -> {
+            if (isLoggedIn)
+                requestSignIn();
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        binding.rlProgressBar.setVisibility(View.VISIBLE);
+//        boolean isPasswordsMigrated = preferences.getBoolean(PASSWORDS_MIGRATED, false);
+//        String version = BuildConfig.VERSION_NAME;
+//        if (isPasswordsMigrated && version.equals("2.3.2"))
+//            mainViewModel.migratePasswords();
+
+        boolean isLoggedIn = preferences.getBoolean(SIGNED_IN, false);
+        if (!isLoggedIn) {
+            keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            if (keyguardManager.isKeyguardSecure()) {
+                Intent intent = keyguardManager.createConfirmDeviceCredentialIntent(
+                        getString(R.string.auth_key_guard),
+                        getString(R.string.auth_msg)
+                );
+                startActivityForResult(intent, PIN_REQUEST_CODE);
+            }
+        }
+    }
+
+    private void certificateManenoz(GoogleAccountCredential credential,
+                                    Drive googleDriveService)
+            throws Exception {
+
+        // Get the backup folder id
+        FileList driverList = null;
+        com.google.api.services.drive.model.File backupFolder = null;
+        com.google.api.services.drive.model.File publicKeyFile = null;
+        String query = "mimeType = 'application/vnd.google-apps.folder'" +
+                " and 'root' in parents and trashed = false";
+        try {
+            driverList = googleDriveService.files().list().setQ(query)
+                    .setFields("files(id,name)").execute();
+
+            List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
+
+            for (com.google.api.services.drive.model.File file : fileList) {
+                if (BACKUP_FOLDER.equals(file.getName())) {
+                    backupFolder = file;
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Create the backup folder if it does not exist
+        com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
+        fileDirMetadata.setName(BACKUP_FOLDER);
+        fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
+        if (backupFolder == null)
+            backupFolder = createFolder(googleDriveService, fileDirMetadata);
+
+        // Get the security certificate from Google drive
+        query = "mimeType = 'text/plain'" +
+                " and '" + backupFolder.getId() + "' in parents and trashed = false";
+        FileList backupFolderList = googleDriveService.files().list().setQ(query)
+                .setFields("files(id,name)").execute();
+
+        for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
+            if (PUBLIC_KEY_FILE_NAME.equals(item.getName())) {
+                publicKeyFile = item;
+                break;
+            }
+        }
+
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        if (publicKeyFile == null && keyStore.containsAlias(ALIAS))
+            exportPublicKey(keyStore, fileDirMetadata, backupFolder, googleDriveService, this);
+    }
+
+    private com.google.api.services.drive.model.File createFolder(Drive googleDriveService,
+                                                                  com.google.api.services.drive.model.File fileDirMetadata) {
+        try {
+            return googleDriveService.files().create(fileDirMetadata)
+                    .setFields("id")
+                    .execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileDirMetadata;
     }
 
     private void startAlertActivity() {
         AlertDialog.Builder builder
                 = new AlertDialog.Builder(
-                        this, android.R.style.Theme_Material_Dialog_Alert);
+                this, android.R.style.Theme_Material_Dialog_Alert);
 
         builder.setTitle(R.string.disclaimer);
         builder.setMessage(R.string.disclaimer_message);
         builder.setCancelable(false);
         builder.setPositiveButton(R.string.ok, (dialog, which) -> {
-            MainApp.getPreferences().edit()
+            preferences.edit()
                     .putBoolean(IS_DISCLAIMER_SHOWN, true)
                     .apply();
             dialog.dismiss();
@@ -232,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.back_passwords) {
-            uploadFile(binding.getRoot());
+            createBackup();
             return true;
         } else if (item.getItemId() == R.id.restore_password) {
             restorePasswords();
@@ -250,8 +373,19 @@ public class MainActivity extends AppCompatActivity {
         } else if (item.getItemId() == R.id.scan_qr) {
             scanQRCode();
             return true;
+        } else if (item.getItemId() == R.id.sign_out) {
+            signOutUser();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void signOutUser() {
+        preferences.edit()
+                .putBoolean(SIGNED_IN, false)
+                .putBoolean(SIGNED_IN_WITH_GOOGLE, false)
+                .apply();
+
+        navController.navigate(R.id.fragment_auth);
     }
 
     private void scanQRCode() {
@@ -264,11 +398,56 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == 1005) {
+        if (requestCode == 1005) {
             String jsonPasswords = data.getStringExtra("SCAN_RESULT");
-            List<Password> pList = gson.fromJson(jsonPasswords, new TypeToken<List<Password>>() {}.getType());
+            List<Password> pList = gson.fromJson(jsonPasswords, new TypeToken<List<Password>>() {
+            }.getType());
 
             mainViewModel.savePasswords(pList);
+        } else if (requestCode == REQUEST_CODE_GOOGLE_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                account = task.getResult(ApiException.class);
+                preferences.edit()
+                        .putBoolean(SIGNED_IN_WITH_GOOGLE, true)
+                        .apply();
+                navController.navigate(R.id.fragment_passwords);
+
+                new Thread(() -> {
+                    boolean isCertAlreadyUploaded = preferences
+                            .getBoolean(IS_CERT_UPLOADED, false);
+
+                    if (!isCertAlreadyUploaded) {
+                        try {
+                            // Get user credentials
+                            GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(this,
+                                    Arrays.asList(DriveScopes.DRIVE_FILE));
+                            credential.setSelectedAccount(account.getAccount());
+
+                            // Create a Google Drive service
+                            Drive googleDriveService = new Drive.Builder(
+                                    AndroidHttp.newCompatibleTransport(),
+                                    new GsonFactory(),
+                                    credential
+                            ).setApplicationName("Passwords").build();
+
+                            certificateManenoz(credential, googleDriveService);
+                        } catch (Exception e) {
+                            Log.e(TAG, "onStart: Error processing certificate", e);
+                        }
+                    }
+                }).start();
+            } catch (ApiException e) {
+                e.printStackTrace();
+            }
+        } else if (requestCode == PIN_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                preferences.edit()
+                        .putBoolean(SIGNED_IN, true)
+                        .apply();
+            } else {
+                finish();
+            }
         }
     }
 
@@ -321,104 +500,217 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void restorePasswords() {
+        GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(this,
+                Arrays.asList(DriveScopes.DRIVE_FILE));
+        credential.setSelectedAccount(account.getAccount());
+
+        Drive googleDriveService = new Drive.Builder(
+                AndroidHttp.newCompatibleTransport(),
+                new GsonFactory(),
+                credential
+        ).setApplicationName("Passwords").build();
+
+        DriveServiceHelper driveServiceHelper = new DriveServiceHelper(googleDriveService);
         driveServiceHelper.getAllFiles()
                 .addOnSuccessListener(outputStream -> {
                     ByteArrayOutputStream bos = (ByteArrayOutputStream) outputStream;
                     String jsonCipher = bos.toString();
 
-                    mainViewModel.decrypt(jsonCipher);
+                    // Get the backup folder id
+                    FileList driverList = null;
+                    com.google.api.services.drive.model.File backupFolder = null;
+                    com.google.api.services.drive.model.File publicKeyFile = null;
+                    String query = "mimeType = 'application/vnd.google-apps.folder'" +
+                            " and 'root' in parents and trashed = false";
+                    try {
+                        driverList = googleDriveService.files().list().setQ(query)
+                                .setFields("files(id,name)").execute();
 
-                    mainViewModel.decryptedPasswords.observe(this, json -> {
-                        List<Password> passwords = new Gson().fromJson(json, new TypeToken<List<Password>>() {}.getType());
-                        mainViewModel.savePasswords(passwords);
-                    });
+                        List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
+
+                        for (com.google.api.services.drive.model.File file : fileList) {
+                            if (BACKUP_FOLDER.equals(file.getName())) {
+                                backupFolder = file;
+                                break;
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Create the backup folder if it does not exist
+                    com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
+                    fileDirMetadata.setName(BACKUP_FOLDER);
+                    fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
+                    if (backupFolder == null)
+                        backupFolder = createFolder(googleDriveService, fileDirMetadata);
+
+                    PublicKey publicKey = null;
+                    try {
+                        // Get the security certificate from Google drive
+                        query = "mimeType = 'text/plain'" +
+                                " and '" + backupFolder.getId() + "' in parents and trashed = false";
+                        FileList backupFolderList = googleDriveService.files().list().setQ(query)
+                                .setFields("files(id,name)").execute();
+
+                        for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
+                            if (PUBLIC_KEY_FILE_NAME.equals(item.getName())) {
+                                publicKeyFile = item;
+                                break;
+                            }
+                        }
+
+                        publicKey = getPublicKey(publicKeyFile, googleDriveService);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    mainViewModel.decrypt(jsonCipher, publicKey);
+
+                    List<Password> passwords = new Gson().fromJson(jsonCipher,
+                            new TypeToken<List<Password>>() {}.getType());
+
+                    mainViewModel.savePasswords(passwords);
                 }).addOnFailureListener(this, e ->
                         Toast.makeText(this, "Could not get file", Toast.LENGTH_SHORT)
                                 .show());
     }
 
     public void requestSignIn() {
-        GoogleSignInOptions googleSignInOptions
-                = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
+                .requestEmail()
                 .build();
+        gsc = GoogleSignIn.getClient(this, gso);
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if (account == null) {
-            GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(this,
-                    googleSignInOptions);
-
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-                    result -> {
-                        if (result.getResultCode() == RESULT_OK) {
-                            handleSignInIntent(result.getData());
-                        }
-                    }).launch(googleSignInClient.getSignInIntent());
-        }
-    }
-
-    private void handleSignInIntent(Intent data) {
-        GoogleSignIn.getSignedInAccountFromIntent(data)
-                .addOnSuccessListener(googleSignInAccount -> {
-                    GoogleAccountCredential credential = GoogleAccountCredential
-                            .usingOAuth2(this, Collections.singleton(DriveScopes.DRIVE_FILE));
-                    credential.setSelectedAccount(googleSignInAccount.getAccount());
-
-                    Drive googleDriveService = new Drive.Builder(
-                            AndroidHttp.newCompatibleTransport(),
-                            new GsonFactory(),
-                            credential
-                    ).setApplicationName("Passwords").build();
-
-                    driveServiceHelper = new DriveServiceHelper(googleDriveService);
-                }).addOnFailureListener(e ->
-                        Log.e(TAG, "handleSignInIntent: Error " + e.getMessage(), e));
-    }
-
-    public void uploadFile(View v) {
-        createBackup();
+        Intent signInIntent = gsc.getSignInIntent();
+        startActivityForResult(signInIntent, REQUEST_CODE_GOOGLE_SIGN_IN);
     }
 
     private void createBackup() {
+        // Show a progress loader
         ProgressDialog progressDialog = new ProgressDialog(this);
 
         progressDialog.setTitle("Uploading to Google drive");
         progressDialog.setMessage("Please wait...");
         progressDialog.show();
 
+        // Get a list of passwords
         if (passwordList.isEmpty()) {
             mainViewModel.getPasswords();
         }
 
-        mainViewModel.encipheredPasswords.observe(this, encryptedText -> {
-            String filePath = "/storage/emulated/0/myfile.txt";
+        String json = new Gson().toJson(passwordList);
+        String filePath = "/storage/emulated/0/myfile.txt";
 
-            SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
+        SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
 
-            String fileName = sp.format(new Date()) + ".txt";
+        // backup file name
+        String fileName = sp.format(new Date()) + ".txt";
 
-            try (FileOutputStream fos = openFileOutput(fileName, Context.MODE_PRIVATE)) {
+        // Create output stream to write backup to
+        try (FileOutputStream fos = openFileOutput(fileName, Context.MODE_PRIVATE)) {
 
-                OutputStreamWriter writer = new OutputStreamWriter(fos);
+            OutputStreamWriter writer = new OutputStreamWriter(fos);
 
-                writer.write(encryptedText);
+            writer.write(json);
 
-                writer.flush();
-                writer.close();
+            writer.flush();
+            writer.close();
 
-                File fileOutput = new File(getApplicationContext().getFilesDir(), fileName);
+            File fileOutput = new File(getApplicationContext().getFilesDir(), fileName);
 
-                driveServiceHelper.createFile(fileOutput.getAbsolutePath(), fileName)
-                        .addOnSuccessListener(s -> {
-                            progressDialog.dismiss();
-                            Toast.makeText(this, "Completed upload", Toast.LENGTH_SHORT).show();
-                        }).addOnFailureListener(e -> {
-                            progressDialog.dismiss();
-                            Toast.makeText(this, "Upload failed", Toast.LENGTH_SHORT).show();
-                        });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+            // Get user credentials
+            GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(this,
+                    Arrays.asList(DriveScopes.DRIVE_FILE));
+            credential.setSelectedAccount(account.getAccount());
+
+            // Create a Google Drive service
+            Drive googleDriveService = new Drive.Builder(
+                    AndroidHttp.newCompatibleTransport(),
+                    new GsonFactory(),
+                    credential
+            ).setApplicationName("Passwords").build();
+
+            // Create a background thread for network calls
+            new Thread(() -> {
+                com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
+                fileDirMetadata.setName(BACKUP_FOLDER);
+                fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
+
+                com.google.api.services.drive.model.File backupFolder = null;
+
+                String fileId = "";
+                if (fileId.equals("")) {
+                    // Get the backup folder id
+                    String query = "mimeType = 'application/vnd.google-apps.folder'" +
+                            " and 'root' in parents and trashed = false";
+                    FileList driverList = null;
+                    try {
+                        driverList = googleDriveService.files().list().setQ(query)
+                                .setFields("files(id, name)")
+                                .execute();
+
+                        List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
+                        for (com.google.api.services.drive.model.File file : fileList) {
+                            if (BACKUP_FOLDER.equals(file.getName())) {
+                                backupFolder = file;
+                                break;
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                fileDirMetadata = new com.google.api.services.drive.model.File();
+                fileDirMetadata.setName(BACKUP_FOLDER);
+                fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
+                if (backupFolder == null)
+                    backupFolder = createFolder(googleDriveService, fileDirMetadata);
+
+                boolean isCertUploaded = preferences
+                        .getBoolean(IS_CERT_UPLOADED, false);
+                if (!isCertUploaded) {
+                    try {
+                        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+                        exportPublicKey(keyStore, fileDirMetadata, backupFolder, googleDriveService,
+                                getApplicationContext());
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                fileDirMetadata = new com.google.api.services.drive.model.File();
+                fileDirMetadata.setName(fileOutput.getName());
+                fileDirMetadata.setParents(Collections.singletonList(fileId));
+                FileContent fileContent = new FileContent("text/plain", fileOutput);
+                com.google.api.services.drive.model.File file = null;
+                try {
+                    file = googleDriveService.files().create(fileDirMetadata, fileContent)
+                            .setFields("id, parents")
+                            .execute();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                new Handler(getMainLooper())
+                        .post(progressDialog::dismiss);
+            }).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+        super.onBackPressed();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        preferences.edit().putBoolean(SIGNED_IN, false).apply();
     }
 }

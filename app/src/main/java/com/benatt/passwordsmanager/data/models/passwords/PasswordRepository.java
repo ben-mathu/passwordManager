@@ -1,7 +1,7 @@
 package com.benatt.passwordsmanager.data.models.passwords;
 
-import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.data.models.Dao;
+import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 
 import java.util.List;
 

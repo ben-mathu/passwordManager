@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/fragment_passwords">
+    app:startDestination="@id/fragment_auth">
 
     <fragment
         android:id="@+id/fragment_auth"
@@ -16,7 +16,7 @@
             app:destination="@+id/fragment_passwords"
             app:launchSingleTop="true"
             app:popUpTo="@navigation/nav_graph"
-            app:popUpToInclusive="true"/>
+            app:popUpToInclusive="false"/>
     </fragment>
 
     <fragment
@@ -27,7 +27,8 @@
 
         <action
             android:id="@+id/action_passwords_to_add_password"
-            app:destination="@+id/fragment_add_password"/>
+            app:destination="@+id/fragment_add_password"
+            app:launchSingleTop="true"/>
     </fragment>
 
     <fragment
