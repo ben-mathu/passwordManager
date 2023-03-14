@@ -12,7 +12,5 @@
 
     <style name="CustomButton" parent="@android:style/Widget.Holo.Light.Button">
         <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@color/colorAccent</item>
-        <item name="android:textColorPrimary">@color/colorAccent</item>
     </style>
 </resources>

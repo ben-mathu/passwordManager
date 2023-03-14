@@ -24,6 +24,9 @@ public interface PasswordDao {
     @Query("SELECT * FROM passwords")
     Observable<List<Password>> getAll();
 
+    @Query("SELECT * FROM passwords")
+    List<Password> getAllForMigration();
+
     @Delete
     Completable delete(Password password);
 

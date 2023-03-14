@@ -17,6 +17,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
@@ -44,7 +45,6 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
     public MutableLiveData<String> encipheredPasswords = new MutableLiveData<>();
     public MutableLiveData<String> decryptedPasswords = new MutableLiveData<>();
-    public MutableLiveData<List<Password>> prevList = new MutableLiveData<>();
 
     private Disposable disposable;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
@@ -132,30 +132,5 @@ public class MainViewModel extends ViewModel {
                             Log.e(TAG, "savePasswords: Error" + throwable.getLocalizedMessage(), throwable);
                         }
                 );
-    }
-
-    public void migratePasswords() {
-        disposable = passwordRepo.getAll()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        list -> {
-                            prevList.setValue(list);
-                        },
-                        throwable ->
-                                Log.e(TAG, "migratePasswords: Error retreiving passwords",
-                                        throwable)
-                );
-    }
-
-    public void useCurrentEncryptionScheme(List<Password> list) {
-        try {
-            for (Password password : list) {
-                String passwordStr = Decryptor.decryptPrevPassword(password.getCipher(), secretKey);
-                password.setCipher(Encryptor.encrypt(publicKey, passwordStr));
-            }
-        } catch (Exception e) {
-            message.setValue(e.getMessage());
-        }
     }
 }

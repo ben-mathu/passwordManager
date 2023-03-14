@@ -54,7 +54,8 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
             AddPasswordViewModel addPasswordViewModel = new AddPasswordViewModel(publicKey, secretKey, passwordRepository);
             return (T) addPasswordViewModel;
         } else if (modelClass.isAssignableFrom(SharedViewModel.class)) {
-            SharedViewModel sharedViewModel = new SharedViewModel(passwordRepository);
+            SharedViewModel sharedViewModel = new SharedViewModel(passwordRepository,
+                    secretKey, publicKey);
             return (T) sharedViewModel;
         }
 

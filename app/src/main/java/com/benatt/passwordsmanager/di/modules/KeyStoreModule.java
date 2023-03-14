@@ -137,7 +137,7 @@ public class KeyStoreModule {
                 "AndroidKeyStore");
 
         KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(
-                ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                PREV_ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .build();

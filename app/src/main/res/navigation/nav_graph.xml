@@ -15,8 +15,8 @@
             android:id="@+id/action_authentication_to_password_list"
             app:destination="@+id/fragment_passwords"
             app:launchSingleTop="true"
-            app:popUpTo="@navigation/nav_graph"
-            app:popUpToInclusive="false"/>
+            app:popUpTo="@id/fragment_auth"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
@@ -28,7 +28,9 @@
         <action
             android:id="@+id/action_passwords_to_add_password"
             app:destination="@+id/fragment_add_password"
-            app:launchSingleTop="true"/>
+            app:launchSingleTop="false"
+            app:popUpTo="@id/fragment_passwords"
+            app:popUpToInclusive="false"/>
     </fragment>
 
     <fragment

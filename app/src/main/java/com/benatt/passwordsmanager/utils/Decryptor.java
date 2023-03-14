@@ -6,6 +6,7 @@ import static com.benatt.passwordsmanager.utils.Constants.DELIMITER;
 import static com.benatt.passwordsmanager.utils.Constants.INITIALIZATION_VECTOR;
 
 import android.util.Base64;
+import android.util.Log;
 
 import com.benatt.passwordsmanager.MainApp;
 
@@ -62,12 +63,14 @@ public class Decryptor {
             byte[] passwordStr = Base64.decode(actualCipher, Base64.DEFAULT);
 //            String ivStr = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
             byte[] iv = Base64.decode(ivString, Base64.DEFAULT);
-            cipher.init(Cipher.DECRYPT_MODE, publicKey != null ? publicKey : privateKey,
-                    new GCMParameterSpec(128, iv));
+            cipher.init(Cipher.DECRYPT_MODE, privateKey);
 
             plainPassword = new String(cipher.doFinal(passwordStr), StandardCharsets.UTF_8);
-        } catch (KeyStoreException | UnrecoverableEntryException | BadPaddingException | NoSuchAlgorithmException | CertificateException | InvalidKeyException | InvalidAlgorithmParameterException | NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
-//            Log.e(TAG, "decryptPassword: ", e);
+        } catch (KeyStoreException | UnrecoverableEntryException | BadPaddingException |
+                NoSuchAlgorithmException | CertificateException | InvalidKeyException |
+                NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
+
+            Log.e(TAG, "decryptPassword: ", e);
         }
 
         return plainPassword;

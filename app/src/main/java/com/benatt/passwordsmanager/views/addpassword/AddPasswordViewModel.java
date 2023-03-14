@@ -51,7 +51,7 @@ public class AddPasswordViewModel extends ViewModel {
     public void savePassword(Password password, String newPassword) {
         try {
             if (password != null) {
-                String cipher = Encryptor.prevEncrypt(secretKey, newPassword);
+                String cipher = Encryptor.encrypt(publicKey, newPassword);
                 password.setCipher(cipher);
                 disposable = passwordRepository.save(password)
                         .observeOn(AndroidSchedulers.mainThread())

@@ -160,9 +160,6 @@ public class MainActivity extends AppCompatActivity {
             if (destination.getId() == R.id.fragment_passwords) {
                 bottomNav.setVisibility(View.VISIBLE);
             } else if (destination.getId() == R.id.fragment_auth) {
-                if (preferences.getBoolean(SIGNED_IN_WITH_GOOGLE, false)) {
-                    navController.navigate(R.id.fragment_passwords);
-                }
                 bottomNav.setVisibility(View.GONE);
             } else {
                 bottomNav.setVisibility(View.GONE);
@@ -178,27 +175,40 @@ public class MainActivity extends AppCompatActivity {
         mainViewModel.getPasswords();
         mainViewModel.passwords.observe(this, passwords -> {
             passwordList = passwords;
+            sharedViewModel.hideProgressBar();
         });
 
-        mainViewModel.prevList.observe(this, list -> {
-            mainViewModel.useCurrentEncryptionScheme(list);
+        sharedViewModel.completeMsg.observe(this, msg -> {
+            preferences.edit()
+                    .putBoolean(PASSWORDS_MIGRATED, true)
+                    .apply();
         });
 
         sharedViewModel.isLogin.observe(this, isLoggedIn -> {
             if (isLoggedIn)
                 requestSignIn();
         });
+
+        sharedViewModel.showLoader.observe(this, showLoader -> {
+            if (showLoader)
+                binding.rlProgressBar.setVisibility(View.VISIBLE);
+            else
+                binding.rlProgressBar.setVisibility(View.GONE);
+        });
+
+        sharedViewModel.bottomNavLiveData.observe(this, showBottomNav -> {
+            bottomNav.setVisibility(View.VISIBLE);
+        });
+
+        boolean isPasswordsMigrated = preferences.getBoolean(PASSWORDS_MIGRATED, false);
+        String version = BuildConfig.VERSION_NAME;
+        if (!isPasswordsMigrated && version.equals("2.3.2"))
+            sharedViewModel.migratePasswords();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        binding.rlProgressBar.setVisibility(View.VISIBLE);
-//        boolean isPasswordsMigrated = preferences.getBoolean(PASSWORDS_MIGRATED, false);
-//        String version = BuildConfig.VERSION_NAME;
-//        if (isPasswordsMigrated && version.equals("2.3.2"))
-//            mainViewModel.migratePasswords();
 
         boolean isLoggedIn = preferences.getBoolean(SIGNED_IN, false);
         if (!isLoggedIn) {
@@ -700,12 +710,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        finish();
-        super.onBackPressed();
     }
 
     @Override

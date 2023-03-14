@@ -37,6 +37,10 @@ public class PasswordRepository extends Dao<Password> {
         return passwordDao.getAll();
     }
 
+    public Observable<List<Password>> getAllForMigration() {
+        return Observable.create(emitter -> emitter.onNext(passwordDao.getAllForMigration()));
+    }
+
     @Override
     public Completable delete(Password password) {
         return passwordDao.delete(password)
