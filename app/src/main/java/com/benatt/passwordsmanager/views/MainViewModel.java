@@ -90,13 +90,13 @@ public class MainViewModel extends ViewModel {
         }
     }
 
-    public void decrypt(String jsonCipher, PublicKey publicKey) {
+    public void decrypt(String jsonCipher, PrivateKey pKey) {
         List<Password> passwordList = new Gson().fromJson(jsonCipher,
                 new TypeToken<List<Password>>(){}.getType());
 
         try {
             for (Password password : passwordList) {
-                String passwordStr = Decryptor.decryptPassword(password.getCipher(), publicKey);
+                String passwordStr = Decryptor.decryptPassword(password.getCipher(), pKey);
                 password.setCipher(Encryptor.encrypt(publicKey, passwordStr));
 
                 savePassword(password);

@@ -1,11 +1,11 @@
 package com.benatt.passwordsmanager.views;
 
-import static com.benatt.passwordsmanager.utils.CertUtil.exportPublicKey;
-import static com.benatt.passwordsmanager.utils.CertUtil.getPublicKey;
+import static com.benatt.passwordsmanager.utils.CertUtil.exportCertificate;
+import static com.benatt.passwordsmanager.utils.CertUtil.getPrivateKey;
 import static com.benatt.passwordsmanager.utils.Constants.ALIAS;
 import static com.benatt.passwordsmanager.utils.Constants.BACKUP_FOLDER;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
-import static com.benatt.passwordsmanager.utils.Constants.PUBLIC_KEY_FILE_NAME;
+import static com.benatt.passwordsmanager.utils.Constants.CERT_FILE_NAME;
 import static com.benatt.passwordsmanager.utils.Constants.IS_CERT_UPLOADED;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN;
@@ -81,7 +81,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
-import java.security.PublicKey;
+import java.security.PrivateKey;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -265,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
                 .setFields("files(id,name)").execute();
 
         for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
-            if (PUBLIC_KEY_FILE_NAME.equals(item.getName())) {
+            if (CERT_FILE_NAME.equals(item.getName())) {
                 publicKeyFile = item;
                 break;
             }
@@ -274,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         if (publicKeyFile == null && keyStore.containsAlias(ALIAS))
-            exportPublicKey(keyStore, fileDirMetadata, backupFolder, googleDriveService, this);
+            exportCertificate(keyStore, fileDirMetadata, backupFolder, googleDriveService, this);
     }
 
     private com.google.api.services.drive.model.File createFolder(Drive googleDriveService,
@@ -537,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
                         // Get the backup folder id
                         FileList driverList = null;
                         com.google.api.services.drive.model.File backupFolder = null;
-                        com.google.api.services.drive.model.File publicKeyFile = null;
+                        com.google.api.services.drive.model.File certFile = null;
                         String query = "mimeType = 'application/vnd.google-apps.folder'" +
                                 " and 'root' in parents and trashed = false";
                         try {
@@ -563,7 +563,7 @@ public class MainActivity extends AppCompatActivity {
                         if (backupFolder == null)
                             backupFolder = createFolder(googleDriveService, fileDirMetadata);
 
-                        PublicKey publicKey = null;
+                        PrivateKey pKey = null;
                         try {
                             // Get the security certificate from Google drive
                             query = "mimeType = 'text/plain'" +
@@ -572,17 +572,17 @@ public class MainActivity extends AppCompatActivity {
                                     .setFields("files(id,name)").execute();
 
                             for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
-                                if (PUBLIC_KEY_FILE_NAME.equals(item.getName())) {
-                                    publicKeyFile = item;
+                                if (CERT_FILE_NAME.equals(item.getName())) {
+                                    certFile = item;
                                     break;
                                 }
                             }
 
-                            publicKey = getPublicKey(publicKeyFile, googleDriveService);
+                            pKey = getPrivateKey(certFile, googleDriveService);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        mainViewModel.decrypt(jsonCipher, publicKey);
+                        mainViewModel.decrypt(jsonCipher, pKey);
 
                         List<Password> passwords = new Gson().fromJson(jsonCipher,
                                 new TypeToken<List<Password>>() {}.getType());
@@ -690,7 +690,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
                         keyStore.load(null);
-                        exportPublicKey(keyStore, fileDirMetadata, backupFolder, googleDriveService,
+                        exportCertificate(keyStore, fileDirMetadata, backupFolder, googleDriveService,
                                 getApplicationContext());
                     } catch (Exception e) {
                         throw new RuntimeException(e);
