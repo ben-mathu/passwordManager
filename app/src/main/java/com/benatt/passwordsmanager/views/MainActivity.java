@@ -210,7 +210,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        boolean isLoggedIn = preferences.getBoolean(SIGNED_IN, false);
+        boolean isLoggedIn = MainApp.getPreferences().getBoolean(SIGNED_IN_WITH_GOOGLE, false);
+        if (isLoggedIn)
+            requestSignIn();
+
+        isLoggedIn = preferences.getBoolean(SIGNED_IN, false);
         if (!isLoggedIn) {
             keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
             if (keyguardManager.isKeyguardSecure()) {
@@ -664,6 +668,7 @@ public class MainActivity extends AppCompatActivity {
                         for (com.google.api.services.drive.model.File file : fileList) {
                             if (BACKUP_FOLDER.equals(file.getName())) {
                                 backupFolder = file;
+                                fileId = file.getId();
                                 break;
                             }
                         }
@@ -683,6 +688,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!isCertUploaded) {
                     try {
                         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+                        keyStore.load(null);
                         exportPublicKey(keyStore, fileDirMetadata, backupFolder, googleDriveService,
                                 getApplicationContext());
                     } catch (Exception e) {
