@@ -10,7 +10,7 @@ android {
         applicationId "com.benatt.passwordsmanager"
         minSdkVersion 23
         targetSdkVersion 33
-        versionCode 15
+        versionCode 16
         versionName "2.3.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
