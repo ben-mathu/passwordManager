@@ -18,7 +18,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -121,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private GoogleSignInClient gsc;
     private GoogleSignInAccount account;
     private SharedPreferences preferences;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -210,11 +210,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        boolean isLoggedIn = MainApp.getPreferences().getBoolean(SIGNED_IN_WITH_GOOGLE, false);
-        if (isLoggedIn)
-            requestSignIn();
-
-        isLoggedIn = preferences.getBoolean(SIGNED_IN, false);
+        boolean isLoggedIn = preferences.getBoolean(SIGNED_IN, false);
         if (!isLoggedIn) {
             keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
             if (keyguardManager.isKeyguardSecure()) {
@@ -224,6 +220,8 @@ public class MainActivity extends AppCompatActivity {
                 );
                 startActivityForResult(intent, PIN_REQUEST_CODE);
             }
+        } else {
+            requestSignIn();
         }
     }
 
@@ -412,13 +410,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1005) {
+        if (requestCode == 1005 && resultCode == RESULT_OK) {
             String jsonPasswords = data.getStringExtra("SCAN_RESULT");
             List<Password> pList = gson.fromJson(jsonPasswords, new TypeToken<List<Password>>() {
             }.getType());
 
             mainViewModel.savePasswords(pList);
-        } else if (requestCode == REQUEST_CODE_GOOGLE_SIGN_IN) {
+        } else if (requestCode == REQUEST_CODE_GOOGLE_SIGN_IN && resultCode == RESULT_OK) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 account = task.getResult(ApiException.class);
@@ -454,11 +452,14 @@ public class MainActivity extends AppCompatActivity {
             } catch (ApiException e) {
                 e.printStackTrace();
             }
+
         } else if (requestCode == PIN_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 preferences.edit()
                         .putBoolean(SIGNED_IN, true)
                         .apply();
+
+                requestSignIn();
             } else {
                 finish();
             }
@@ -514,6 +515,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void restorePasswords() {
+        showProgressBar("Restoring Passwords");
+
         GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(this,
                 Arrays.asList(DriveScopes.DRIVE_FILE));
         credential.setSelectedAccount(account.getAccount());
@@ -527,63 +530,68 @@ public class MainActivity extends AppCompatActivity {
         DriveServiceHelper driveServiceHelper = new DriveServiceHelper(googleDriveService);
         driveServiceHelper.getAllFiles()
                 .addOnSuccessListener(outputStream -> {
-                    ByteArrayOutputStream bos = (ByteArrayOutputStream) outputStream;
-                    String jsonCipher = bos.toString();
+                    new Thread(() -> {
+                        ByteArrayOutputStream bos = (ByteArrayOutputStream) outputStream;
+                        String jsonCipher = bos.toString();
 
-                    // Get the backup folder id
-                    FileList driverList = null;
-                    com.google.api.services.drive.model.File backupFolder = null;
-                    com.google.api.services.drive.model.File publicKeyFile = null;
-                    String query = "mimeType = 'application/vnd.google-apps.folder'" +
-                            " and 'root' in parents and trashed = false";
-                    try {
-                        driverList = googleDriveService.files().list().setQ(query)
-                                .setFields("files(id,name)").execute();
+                        // Get the backup folder id
+                        FileList driverList = null;
+                        com.google.api.services.drive.model.File backupFolder = null;
+                        com.google.api.services.drive.model.File publicKeyFile = null;
+                        String query = "mimeType = 'application/vnd.google-apps.folder'" +
+                                " and 'root' in parents and trashed = false";
+                        try {
+                            driverList = googleDriveService.files().list().setQ(query)
+                                    .setFields("files(id,name)").execute();
 
-                        List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
+                            List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
 
-                        for (com.google.api.services.drive.model.File file : fileList) {
-                            if (BACKUP_FOLDER.equals(file.getName())) {
-                                backupFolder = file;
-                                break;
+                            for (com.google.api.services.drive.model.File file : fileList) {
+                                if (BACKUP_FOLDER.equals(file.getName())) {
+                                    backupFolder = file;
+                                    break;
+                                }
                             }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    // Create the backup folder if it does not exist
-                    com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
-                    fileDirMetadata.setName(BACKUP_FOLDER);
-                    fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
-                    if (backupFolder == null)
-                        backupFolder = createFolder(googleDriveService, fileDirMetadata);
-
-                    PublicKey publicKey = null;
-                    try {
-                        // Get the security certificate from Google drive
-                        query = "mimeType = 'text/plain'" +
-                                " and '" + backupFolder.getId() + "' in parents and trashed = false";
-                        FileList backupFolderList = googleDriveService.files().list().setQ(query)
-                                .setFields("files(id,name)").execute();
-
-                        for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
-                            if (PUBLIC_KEY_FILE_NAME.equals(item.getName())) {
-                                publicKeyFile = item;
-                                break;
-                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
 
-                        publicKey = getPublicKey(publicKeyFile, googleDriveService);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    mainViewModel.decrypt(jsonCipher, publicKey);
+                        // Create the backup folder if it does not exist
+                        com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
+                        fileDirMetadata.setName(BACKUP_FOLDER);
+                        fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
+                        if (backupFolder == null)
+                            backupFolder = createFolder(googleDriveService, fileDirMetadata);
 
-                    List<Password> passwords = new Gson().fromJson(jsonCipher,
-                            new TypeToken<List<Password>>() {}.getType());
+                        PublicKey publicKey = null;
+                        try {
+                            // Get the security certificate from Google drive
+                            query = "mimeType = 'text/plain'" +
+                                    " and '" + backupFolder.getId() + "' in parents and trashed = false";
+                            FileList backupFolderList = googleDriveService.files().list().setQ(query)
+                                    .setFields("files(id,name)").execute();
 
-                    mainViewModel.savePasswords(passwords);
+                            for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
+                                if (PUBLIC_KEY_FILE_NAME.equals(item.getName())) {
+                                    publicKeyFile = item;
+                                    break;
+                                }
+                            }
+
+                            publicKey = getPublicKey(publicKeyFile, googleDriveService);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        mainViewModel.decrypt(jsonCipher, publicKey);
+
+                        List<Password> passwords = new Gson().fromJson(jsonCipher,
+                                new TypeToken<List<Password>>() {}.getType());
+
+                        mainViewModel.savePasswords(passwords);
+
+                        new Handler(getMainLooper())
+                                .post(progressDialog::dismiss);
+                    }).start();
                 }).addOnFailureListener(this, e ->
                         Toast.makeText(this, "Could not get file", Toast.LENGTH_SHORT)
                                 .show());
@@ -601,12 +609,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createBackup() {
-        // Show a progress loader
-        ProgressDialog progressDialog = new ProgressDialog(this);
-
-        progressDialog.setTitle("Uploading to Google drive");
-        progressDialog.setMessage("Please wait...");
-        progressDialog.show();
+        showProgressBar("Uploading to Google drive");
 
         // Get a list of passwords
         if (passwordList.isEmpty()) {
@@ -654,27 +657,25 @@ public class MainActivity extends AppCompatActivity {
                 com.google.api.services.drive.model.File backupFolder = null;
 
                 String fileId = "";
-                if (fileId.equals("")) {
-                    // Get the backup folder id
-                    String query = "mimeType = 'application/vnd.google-apps.folder'" +
-                            " and 'root' in parents and trashed = false";
-                    FileList driverList = null;
-                    try {
-                        driverList = googleDriveService.files().list().setQ(query)
-                                .setFields("files(id, name)")
-                                .execute();
+                // Get the backup folder id
+                String query = "mimeType = 'application/vnd.google-apps.folder'" +
+                        " and 'root' in parents and trashed = false";
+                FileList driverList = null;
+                try {
+                    driverList = googleDriveService.files().list().setQ(query)
+                            .setFields("files(id, name)")
+                            .execute();
 
-                        List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
-                        for (com.google.api.services.drive.model.File file : fileList) {
-                            if (BACKUP_FOLDER.equals(file.getName())) {
-                                backupFolder = file;
-                                fileId = file.getId();
-                                break;
-                            }
+                    List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
+                    for (com.google.api.services.drive.model.File file : fileList) {
+                        if (BACKUP_FOLDER.equals(file.getName())) {
+                            backupFolder = file;
+                            fileId = file.getId();
+                            break;
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
 
                 fileDirMetadata = new com.google.api.services.drive.model.File();
@@ -716,6 +717,15 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void showProgressBar(String message) {
+        // Show a progress loader
+        progressDialog = new ProgressDialog(this);
+
+        progressDialog.setTitle(message);
+        progressDialog.setMessage("Please wait...");
+        progressDialog.show();
     }
 
     @Override
