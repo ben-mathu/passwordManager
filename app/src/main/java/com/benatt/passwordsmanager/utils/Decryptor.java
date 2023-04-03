@@ -35,7 +35,7 @@ import javax.crypto.spec.GCMParameterSpec;
 public class Decryptor {
     public static final String TAG = Decryptor.class.getSimpleName();
 
-    public static String decryptPassword(String cipherText, PublicKey publicKey) {
+    public static String decryptPassword(String cipherText, PrivateKey pKey) {
         String plainPassword = "";
         try {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
