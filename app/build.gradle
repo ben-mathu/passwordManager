@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.benatt.passwordsmanager"
-        minSdkVersion 23
+        minSdkVersion 24
         targetSdkVersion 33
         versionCode 16
         versionName "2.3.4"

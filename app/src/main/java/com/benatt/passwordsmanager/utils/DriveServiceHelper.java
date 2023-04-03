@@ -13,9 +13,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -77,34 +82,48 @@ public class DriveServiceHelper {
                     .setFields("files(id,name)").execute();
 
             List<File> fileList = backupFolderList.getFiles();
+            File fileNew = fileList.get(0);
+            Set<Integer> indexToDelete = new HashSet<>();
 
-            for (int i = 0; i < fileList.size(); i++) {
+            for (int i = 1; i < fileList.size(); i++) {
                 if (i+1 == fileList.size()) break;
 
                 SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
 
-                String initialFile = fileList.get(i).getName().split("\\.")[0];
+                String initialFile = fileNew.getName().split("\\.")[0];
+                if (!initialFile.matches("[0-9]+")) {
+                    fileNew = fileList.get(i);
+                    continue;
+                }
+
                 Calendar initial = Calendar.getInstance();
                 initial.setTime(sp.parse(initialFile));
 
-                String nextFile = fileList.get(i+1).getName().split("\\.")[0];
+                String nextFile = fileList.get(i).getName().split("\\.")[0];
+                if (!nextFile.matches("[0-9]+")) continue;
+
                 Calendar next = Calendar.getInstance();
                 next.setTime(sp.parse(nextFile));
-                if (initial.getTimeInMillis() > next.getTimeInMillis()) {
-                    File temp = fileList.get(i);
-                    fileList.set(i, fileList.get(i+1));
-                    fileList.set(i+1, temp);
+                if (initial.getTimeInMillis() < next.getTimeInMillis()) {
+                    indexToDelete.add(fileList.indexOf(fileNew));
+                    fileNew = fileList.get(i);
+                } else {
+                    indexToDelete.add(fileList.indexOf(fileNew));
                 }
             }
 
-            if (fileList.size() > 5) {
-                for (int i = 0; i < fileList.size() - 5; i++) {
-                    drive.files().delete(fileList.get(i).getId());
+            List<Integer> arrListIndices = new ArrayList<>(indexToDelete);
+
+            Collections.sort(arrListIndices);
+
+            if (arrListIndices.size() > 5) {
+                for (int i = 0; i < arrListIndices.size() - 5; i++) {
+                    drive.files().delete(fileList.get(arrListIndices.get(i)).getId());
                 }
             }
 
             OutputStream outputStream = new ByteArrayOutputStream();
-            drive.files().get(fileList.get(fileList.size() - 1).getId()).executeMediaAndDownloadTo(outputStream);
+            drive.files().get(fileNew.getId()).executeMediaAndDownloadTo(outputStream);
 
             return outputStream;
         });
