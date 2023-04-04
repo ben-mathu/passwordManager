@@ -63,9 +63,9 @@ public class Decryptor {
             byte[] passwordStr = Base64.decode(actualCipher, Base64.DEFAULT);
 //            String ivStr = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
             byte[] iv = Base64.decode(ivString, Base64.DEFAULT);
-            cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            cipher.init(Cipher.DECRYPT_MODE, pKey != null ? pKey : privateKey);
 
-            plainPassword = new String(cipher.doFinal(passwordStr), StandardCharsets.UTF_8);
+            plainPassword = new String(cipher.doFinal(passwordStr));
         } catch (KeyStoreException | UnrecoverableEntryException | BadPaddingException |
                 NoSuchAlgorithmException | CertificateException | InvalidKeyException |
                 NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
