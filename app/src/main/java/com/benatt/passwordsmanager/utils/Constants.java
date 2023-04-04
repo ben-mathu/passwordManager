@@ -23,7 +23,7 @@ public class Constants {
     public static final String BACKUP_FOLDER = "PasswordsBackups";
     public static final String SIGNED_IN = "signed_in_with_pin";
     public static final String SIGNED_IN_WITH_GOOGLE = "signed_in";
-    public static final String CERT_FILE_NAME = "password_manager_cert.txt";
+    public static final String PRIVATE_KEY_FILE_NAME = "password_manager_private_key.txt";
     public static final String FOLDER_ID = "folder_id";
     public static final String IS_CERT_UPLOADED = "cert_uploaded";
     public static final String PASSWORDS_MIGRATED = "passwords_migrated";

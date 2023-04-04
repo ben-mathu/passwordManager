@@ -96,7 +96,7 @@ public class MainViewModel extends ViewModel {
 
         try {
             for (Password password : passwordList) {
-                String passwordStr = Decryptor.decryptPassword(password.getCipher(), pKey);
+                String passwordStr = Decryptor.decryptPassword(password.getCipher().trim(), pKey);
                 password.setCipher(Encryptor.encrypt(publicKey, passwordStr));
 
                 savePassword(password);
