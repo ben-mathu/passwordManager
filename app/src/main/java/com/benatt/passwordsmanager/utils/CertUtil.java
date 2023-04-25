@@ -51,7 +51,8 @@ public class CertUtil {
 //        PublicKey publicKey = certificate.getPublicKey();
         KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(ALIAS, null);
 
-        byte[] encodedCert = entry.getPrivateKey().getEncoded();
+        PrivateKey privateKey = entry.getPrivateKey();
+        byte[] encodedCert = privateKey.getEncoded();
 
         String certStr = Base64.encodeBase64String(encodedCert);
 

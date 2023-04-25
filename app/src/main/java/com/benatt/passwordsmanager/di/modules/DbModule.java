@@ -8,6 +8,8 @@ import androidx.room.Room;
 
 import com.benatt.passwordsmanager.data.db.PasswordsDatabase;
 import com.benatt.passwordsmanager.data.models.passwords.PasswordDao;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import javax.inject.Singleton;
 
@@ -37,5 +39,11 @@ public class DbModule {
     public PasswordsDatabase provideDb() {
         return Room.databaseBuilder(application, PasswordsDatabase.class, DB_NAME)
                 .build();
+    }
+
+    @Singleton
+    @Provides
+    public DatabaseReference provideFirebaseDbReference() {
+        return FirebaseDatabase.getInstance().getReference();
     }
 }

@@ -4,6 +4,7 @@ package com.benatt.passwordsmanager.utils;
 import static com.benatt.passwordsmanager.utils.Constants.ALIAS;
 import static com.benatt.passwordsmanager.utils.Constants.DELIMITER;
 import static com.benatt.passwordsmanager.utils.Constants.INITIALIZATION_VECTOR;
+import static com.benatt.passwordsmanager.utils.Constants.PREV_ALIAS;
 
 import android.util.Base64;
 import android.util.Log;
@@ -12,13 +13,13 @@ import com.benatt.passwordsmanager.MainApp;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 
@@ -28,6 +29,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 
 /**
  * @time 23/11/20
@@ -35,13 +37,57 @@ import javax.crypto.spec.GCMParameterSpec;
 public class Decryptor {
     public static final String TAG = Decryptor.class.getSimpleName();
 
-    public static String decryptPassword(String cipherText, PrivateKey pKey) {
+    public static String decryptPassword(String cipherText, String passphrase) {
         String plainPassword = "";
         try {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
 
-            KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(ALIAS, null);
+            KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry(ALIAS, null);
+            SecretKey key = secretKeyEntry.getSecretKey();
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+
+            String[] cipherProps;
+            String actualCipher;
+            String ivString;
+            if (cipherText.contains(DELIMITER)) {
+                cipherProps = cipherText.split(DELIMITER);
+                actualCipher = cipherProps[1];
+                ivString = cipherProps[0];
+            } else {
+                // for those passwords that used previous technique to encrypt passwords
+                // encryption used a static variable for the initialization vector
+                actualCipher = cipherText;
+                ivString = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
+            }
+
+            byte[] passwordStr = Base64.decode(actualCipher, Base64.DEFAULT);
+//            String ivStr = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
+            byte[] iv = Base64.decode(ivString, Base64.DEFAULT);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv, 0, 16);
+
+            cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
+
+            plainPassword = new String(cipher.doFinal(passwordStr));
+        } catch (KeyStoreException | UnrecoverableEntryException | BadPaddingException |
+                 NoSuchAlgorithmException | CertificateException | InvalidKeyException |
+                 NoSuchPaddingException | IOException | IllegalBlockSizeException |
+                 InvalidAlgorithmParameterException e) {
+
+            Log.e(TAG, "decryptPassword: ", e);
+        }
+
+        return plainPassword;
+    }
+
+    public static String decryptPasswordWithPrevPrivateKey(String cipherText) {
+        String plainPassword = "";
+        try {
+            KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+
+            KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(PREV_ALIAS, null);
             PrivateKey privateKey = privateKeyEntry.getPrivateKey();
 
             Cipher cipher = Cipher.getInstance("RSA/ECB/Pkcs1Padding");
@@ -63,12 +109,12 @@ public class Decryptor {
             byte[] passwordStr = Base64.decode(actualCipher, Base64.DEFAULT);
 //            String ivStr = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
             byte[] iv = Base64.decode(ivString, Base64.DEFAULT);
-            cipher.init(Cipher.DECRYPT_MODE, pKey != null ? pKey : privateKey);
+            cipher.init(Cipher.DECRYPT_MODE, privateKey);
 
             plainPassword = new String(cipher.doFinal(passwordStr));
         } catch (KeyStoreException | UnrecoverableEntryException | BadPaddingException |
-                NoSuchAlgorithmException | CertificateException | InvalidKeyException |
-                NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
+                 NoSuchAlgorithmException | CertificateException | InvalidKeyException |
+                 NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
 
             Log.e(TAG, "decryptPassword: ", e);
         }

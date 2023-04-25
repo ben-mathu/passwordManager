@@ -1,10 +1,14 @@
 package com.benatt.passwordsmanager.views;
 
+import static com.benatt.passwordsmanager.utils.Constants.USER_PASSPHRASE;
+
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.utils.Decryptor;
@@ -23,6 +27,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class SharedViewModel extends ViewModel {
     private static final String TAG = SharedViewModel.class.getSimpleName();
+    private final SharedPreferences preferences;
 
     public MutableLiveData<Boolean> refreshList = new MutableLiveData<>();
     public MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
@@ -31,6 +36,7 @@ public class SharedViewModel extends ViewModel {
     public MutableLiveData<Boolean> showLoader = new MutableLiveData<>();
     public MutableLiveData<Boolean> bottomNavLiveData = new MutableLiveData<>();
     public MutableLiveData<String> completeMsg = new MutableLiveData<>();
+    public MutableLiveData<String> passphrase = new MutableLiveData<>();
 
     private Disposable disposable;
     private final PasswordRepository passwordRepository;
@@ -38,11 +44,9 @@ public class SharedViewModel extends ViewModel {
     private PublicKey publicKey;
 
     @Inject
-    public SharedViewModel(PasswordRepository passwordRepository, SecretKey secretKey,
-                           PublicKey publicKey) {
+    public SharedViewModel(PasswordRepository passwordRepository) {
         this.passwordRepository = passwordRepository;
-        this.secretKey = secretKey;
-        this.publicKey = publicKey;
+        this.preferences = MainApp.getPreferences();
     }
 
     public void refreshList() {
@@ -100,12 +104,13 @@ public class SharedViewModel extends ViewModel {
     }
 
     public void useCurrentEncryptionScheme(List<Password> list) {
+        String passP = preferences.getString(USER_PASSPHRASE, "");
         try {
             List<Password> passwords = new ArrayList<>();
             for (Password password : list) {
-                String passwordStr = Decryptor.decryptPrevPassword(password.getCipher(), secretKey);
+                String passwordStr = Decryptor.decryptPasswordWithPrevPrivateKey(password.getCipher());
                 if (!passwordStr.equals(""))
-                    password.setCipher(Encryptor.encrypt(publicKey, passwordStr));
+                    password.setCipher(Encryptor.encrypt(passwordStr, passP));
 
                 passwords.add(password);
             }

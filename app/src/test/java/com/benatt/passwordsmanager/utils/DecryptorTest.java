@@ -10,7 +10,7 @@ public class DecryptorTest {
     @Test
     public void test_password_decryption() {
         String plainText = Decryptor.decryptPassword("XRgdKEW7wVB14Zqr" +
-                ":refuPijRGgn5miiP+gOszYz/IzmXu4yqA1A0EA==", null);
+                ":refuPijRGgn5miiP+gOszYz/IzmXu4yqA1A0EA==", "Example PassPhrase");
 
         System.out.println("test_password_decryption: " + plainText);
     }

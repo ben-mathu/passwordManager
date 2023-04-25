@@ -1,8 +1,10 @@
 package com.benatt.passwordsmanager.views.addpassword;
 
 import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
+import static com.benatt.passwordsmanager.utils.Constants.USER_PASSPHRASE;
 import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +37,8 @@ public class AddPasswordFragment extends Fragment {
     @Inject
     ViewModelFactory viewModelFactory;
 
+    private SharedPreferences preferences;
+
     private AddPasswordViewModel addPasswordViewModel;
     private FragmentAddPasswordBinding binding;
 
@@ -58,6 +62,7 @@ public class AddPasswordFragment extends Fragment {
 
         binding = FragmentAddPasswordBinding.inflate(inflater, container, false);
         addPasswordViewModel = new ViewModelProvider(this, viewModelFactory).get(AddPasswordViewModel.class);
+        preferences = MainApp.getPreferences();
 
         if (password == null) {
             this.password = new Password();
@@ -92,8 +97,10 @@ public class AddPasswordFragment extends Fragment {
 
         // set password when the user is editing the password details
         String plainPassword = "";
+
+        String passphrase = preferences.getString(USER_PASSPHRASE, "");
         if (!password.getCipher().isEmpty()) {
-            plainPassword = decryptPassword(password.getCipher(), null);
+            plainPassword = decryptPassword(password.getCipher(), passphrase);
             this.password.setCipher(plainPassword);
             binding.setPassword(password);
         }

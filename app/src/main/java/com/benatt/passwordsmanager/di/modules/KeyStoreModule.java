@@ -3,6 +3,7 @@ package com.benatt.passwordsmanager.di.modules;
 import static com.benatt.passwordsmanager.utils.Constants.ALIAS;
 import static com.benatt.passwordsmanager.utils.Constants.PREV_ALIAS;
 
+import android.app.Application;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Log;
@@ -33,6 +34,7 @@ import dagger.Provides;
  * @author bernard
  */
 @Module
+@Deprecated
 public class KeyStoreModule {
     public static final String TAG = KeyStore.class.getSimpleName();
 
@@ -149,7 +151,7 @@ public class KeyStoreModule {
     private KeyStore getKeyStore() {
         KeyStore keyStore = null;
         try {
-            keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(null);
         } catch (KeyStoreException e) {
             Log.e(TAG, "getKeyStore: ", e);

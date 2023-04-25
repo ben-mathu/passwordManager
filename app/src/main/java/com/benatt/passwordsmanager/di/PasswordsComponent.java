@@ -15,7 +15,7 @@ import dagger.Component;
  * @author bernard
  */
 @Singleton
-@Component(modules = {DbModule.class, KeyStoreModule.class})
+@Component(modules = {DbModule.class})
 public interface PasswordsComponent {
     void inject(MainActivity mainActivity);
     void inject(PasswordsFragment passwordsFragment);

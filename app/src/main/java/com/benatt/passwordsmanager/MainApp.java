@@ -7,6 +7,10 @@ import android.preference.PreferenceManager;
 import com.benatt.passwordsmanager.di.DaggerPasswordsComponent;
 import com.benatt.passwordsmanager.di.PasswordsComponent;
 import com.benatt.passwordsmanager.di.modules.DbModule;
+import com.benatt.passwordsmanager.di.modules.KeyStoreModule;
+
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 /**
  * @author bernard
