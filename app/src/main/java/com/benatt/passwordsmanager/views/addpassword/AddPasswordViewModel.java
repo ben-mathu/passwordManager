@@ -11,7 +11,6 @@ import com.benatt.passwordsmanager.utils.Encryptor;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import javax.crypto.BadPaddingException;

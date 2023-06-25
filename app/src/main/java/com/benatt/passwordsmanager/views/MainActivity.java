@@ -4,10 +4,10 @@ import static com.benatt.passwordsmanager.utils.CertUtil.exportPrivateKey;
 import static com.benatt.passwordsmanager.utils.CertUtil.getPrivateKey;
 import static com.benatt.passwordsmanager.utils.Constants.ALIAS;
 import static com.benatt.passwordsmanager.utils.Constants.BACKUP_FOLDER;
-import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
-import static com.benatt.passwordsmanager.utils.Constants.PRIVATE_KEY_FILE_NAME;
 import static com.benatt.passwordsmanager.utils.Constants.IS_CERT_UPLOADED;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
+import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
+import static com.benatt.passwordsmanager.utils.Constants.PRIVATE_KEY_FILE_NAME;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN_WITH_GOOGLE;
 

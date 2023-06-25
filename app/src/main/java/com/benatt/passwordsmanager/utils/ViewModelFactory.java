@@ -11,7 +11,6 @@ import com.benatt.passwordsmanager.views.SharedViewModel;
 import com.benatt.passwordsmanager.views.addpassword.AddPasswordViewModel;
 import com.benatt.passwordsmanager.views.passwords.PasswordsViewModel;
 
-import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import javax.crypto.SecretKey;

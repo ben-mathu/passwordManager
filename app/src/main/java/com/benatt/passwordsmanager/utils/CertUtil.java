@@ -1,12 +1,11 @@
 package com.benatt.passwordsmanager.utils;
 
 import static com.benatt.passwordsmanager.utils.Constants.ALIAS;
-import static com.benatt.passwordsmanager.utils.Constants.PRIVATE_KEY_FILE_NAME;
 import static com.benatt.passwordsmanager.utils.Constants.IS_CERT_UPLOADED;
+import static com.benatt.passwordsmanager.utils.Constants.PRIVATE_KEY_FILE_NAME;
 
 import android.content.Context;
 
-import com.benardmathu.tokengeneration.GenerateRandomString;
 import com.benatt.passwordsmanager.MainApp;
 import com.google.api.client.http.FileContent;
 import com.google.api.services.drive.Drive;
@@ -15,7 +14,6 @@ import org.apache.commons.codec.binary.Base64;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,11 +24,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Collections;
