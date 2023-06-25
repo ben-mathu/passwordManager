@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.util.Objects;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -70,6 +71,9 @@ public class Decryptor {
                 NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
 
             Log.e(TAG, "decryptPassword: ", e);
+        } catch (IllegalArgumentException e) {
+            if (Objects.equals(e.getLocalizedMessage(), "bad base-64"))
+                Log.e(TAG, "decryptPassword: Error", e);
         }
 
         return plainPassword;

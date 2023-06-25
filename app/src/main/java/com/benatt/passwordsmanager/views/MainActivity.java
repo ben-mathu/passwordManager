@@ -49,7 +49,9 @@ import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
 import com.benatt.passwordsmanager.utils.Constants;
+import com.benatt.passwordsmanager.utils.Decryptor;
 import com.benatt.passwordsmanager.utils.DriveServiceHelper;
+import com.benatt.passwordsmanager.utils.Encryptor;
 import com.benatt.passwordsmanager.utils.SaveFile;
 import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -557,37 +559,37 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         // Create the backup folder if it does not exist
-                        com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
-                        fileDirMetadata.setName(BACKUP_FOLDER);
-                        fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
-                        if (backupFolder == null)
-                            backupFolder = createFolder(googleDriveService, fileDirMetadata);
-
-                        PrivateKey pKey = null;
-                        try {
-                            // Get the security certificate from Google drive
-                            query = "mimeType = 'text/plain'" +
-                                    " and '" + backupFolder.getId() + "' in parents and trashed = false";
-                            FileList backupFolderList = googleDriveService.files().list().setQ(query)
-                                    .setFields("files(id,name)").execute();
-
-                            for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
-                                if (PRIVATE_KEY_FILE_NAME.equals(item.getName())) {
-                                    certFile = item;
-                                    break;
-                                }
-                            }
-
-                            pKey = getPrivateKey(certFile, googleDriveService);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        mainViewModel.decrypt(jsonCipher, pKey);
-
-//                        List<Password> passwords = new Gson().fromJson(jsonCipher,
-//                                new TypeToken<List<Password>>() {}.getType());
+//                        com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
+//                        fileDirMetadata.setName(BACKUP_FOLDER);
+//                        fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
+//                        if (backupFolder == null)
+//                            backupFolder = createFolder(googleDriveService, fileDirMetadata);
 //
-//                        mainViewModel.savePasswords(passwords);
+//                        PrivateKey pKey = null;
+//                        try {
+//                            // Get the security certificate from Google drive
+//                            query = "mimeType = 'text/plain'" +
+//                                    " and '" + backupFolder.getId() + "' in parents and trashed = false";
+//                            FileList backupFolderList = googleDriveService.files().list().setQ(query)
+//                                    .setFields("files(id,name)").execute();
+//
+//                            for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
+//                                if (PRIVATE_KEY_FILE_NAME.equals(item.getName())) {
+//                                    certFile = item;
+//                                    break;
+//                                }
+//                            }
+//
+//                            pKey = getPrivateKey(certFile, googleDriveService);
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                        mainViewModel.decrypt(jsonCipher, pKey);
+
+                        List<Password> passwords = new Gson().fromJson(jsonCipher,
+                                new TypeToken<List<Password>>() {}.getType());
+
+                        mainViewModel.savedAndDecrypt(passwords);
 
                         new Handler(getMainLooper())
                                 .post(progressDialog::dismiss);
@@ -614,6 +616,10 @@ public class MainActivity extends AppCompatActivity {
         // Get a list of passwords
         if (passwordList.isEmpty()) {
             mainViewModel.getPasswords();
+        }
+
+        for (Password password : passwordList) {
+            password.setCipher(Decryptor.decryptPassword(password.getCipher(), null));
         }
 
         String json = new Gson().toJson(passwordList);
@@ -676,25 +682,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-
-                fileDirMetadata = new com.google.api.services.drive.model.File();
-                fileDirMetadata.setName(BACKUP_FOLDER);
-                fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
-                if (backupFolder == null)
-                    backupFolder = createFolder(googleDriveService, fileDirMetadata);
-
-                boolean isCertUploaded = preferences
-                        .getBoolean(IS_CERT_UPLOADED, false);
-                if (!isCertUploaded) {
-                    try {
-                        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-                        keyStore.load(null);
-                        exportPrivateKey(keyStore, fileDirMetadata, backupFolder, googleDriveService,
-                                getApplicationContext());
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
                 }
 
                 fileDirMetadata = new com.google.api.services.drive.model.File();

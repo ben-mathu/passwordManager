@@ -89,6 +89,18 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    public void savedAndDecrypt(List<Password> passwordList) {
+        try {
+            for (Password password : passwordList) {
+                password.setCipher(Encryptor.encrypt(publicKey, password.getCipher()));
+
+                savePassword(password);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void decrypt(String jsonCipher, PrivateKey pKey) {
         List<Password> passwordList = new Gson().fromJson(jsonCipher,
                 new TypeToken<List<Password>>(){}.getType());
