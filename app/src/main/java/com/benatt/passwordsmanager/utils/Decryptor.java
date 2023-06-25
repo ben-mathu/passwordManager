@@ -9,6 +9,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.benatt.passwordsmanager.MainApp;
+import com.benatt.passwordsmanager.exceptions.Exception;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +36,7 @@ import javax.crypto.spec.GCMParameterSpec;
 public class Decryptor {
     public static final String TAG = Decryptor.class.getSimpleName();
 
-    public static String decryptPassword(String cipherText, PrivateKey pKey) {
+    public static String decryptPassword(String cipherText, PrivateKey pKey) throws Exception {
         String plainPassword = "";
         try {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -70,16 +71,16 @@ public class Decryptor {
                 NoSuchAlgorithmException | CertificateException | InvalidKeyException |
                 NoSuchPaddingException | IOException | IllegalBlockSizeException e) {
 
-            Log.e(TAG, "decryptPassword: ", e);
+            throw new Exception(e.getLocalizedMessage(), e);
         } catch (IllegalArgumentException e) {
             if (Objects.equals(e.getLocalizedMessage(), "bad base-64"))
-                Log.e(TAG, "decryptPassword: Error", e);
+                throw new Exception(e.getLocalizedMessage(), e);
         }
 
         return plainPassword;
     }
 
-    public static String decryptPrevPassword(String cipherText, SecretKey secretKey) {
+    public static String decryptPrevPassword(String cipherText, SecretKey secretKey) throws Exception {
         String plainPassword = "";
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -108,7 +109,7 @@ public class Decryptor {
         } catch (BadPaddingException | NoSuchAlgorithmException | InvalidKeyException |
                  InvalidAlgorithmParameterException | NoSuchPaddingException |
                  IllegalBlockSizeException e) {
-//            Log.e(TAG, "decryptPassword: ", e);
+            throw new Exception(e.getLocalizedMessage(), e);
         }
 
         return plainPassword;
