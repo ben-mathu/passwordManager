@@ -15,6 +15,7 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * @author bernard
@@ -22,18 +23,18 @@ import javax.inject.Inject;
 public class ViewModelFactory implements ViewModelProvider.Factory {
     private UserRepository userRepository;
     private PublicKey publicKey;
-    private SecretKey secretKey;
+    private PublicKey prevPublicKey;
     private PasswordRepository passwordRepository;
 
     @Inject
     public ViewModelFactory(PasswordRepository passwordRepository,
                             UserRepository userRepository,
                             PublicKey publicKey,
-                            SecretKey secretKey) {
+                            @Named("PREV_ALIAS") PublicKey prevPublicKey) {
         this.passwordRepository = passwordRepository;
         this.userRepository = userRepository;
         this.publicKey = publicKey;
-        this.secretKey = secretKey;
+        this.prevPublicKey = prevPublicKey;
     }
 
     @NonNull
@@ -42,7 +43,7 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
         if (modelClass.isAssignableFrom(MainViewModel.class)) {
 
             MainViewModel viewModel = new MainViewModel(userRepository, passwordRepository,
-                    publicKey, secretKey);
+                    publicKey, prevPublicKey);
             return (T) viewModel;
         } else if (modelClass.isAssignableFrom(PasswordsViewModel.class)) {
 
@@ -50,11 +51,11 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
             return (T) passwordsViewModel;
         } else if (modelClass.isAssignableFrom(AddPasswordViewModel.class)) {
 
-            AddPasswordViewModel addPasswordViewModel = new AddPasswordViewModel(publicKey, secretKey, passwordRepository);
+            AddPasswordViewModel addPasswordViewModel = new AddPasswordViewModel(publicKey, passwordRepository);
             return (T) addPasswordViewModel;
         } else if (modelClass.isAssignableFrom(SharedViewModel.class)) {
             SharedViewModel sharedViewModel = new SharedViewModel(passwordRepository,
-                    secretKey, publicKey);
+                    prevPublicKey, publicKey);
             return (T) sharedViewModel;
         }
 

@@ -1,12 +1,10 @@
 
 package com.benatt.passwordsmanager.utils;
 
-import static com.benatt.passwordsmanager.utils.Constants.ALIAS;
 import static com.benatt.passwordsmanager.utils.Constants.DELIMITER;
 import static com.benatt.passwordsmanager.utils.Constants.INITIALIZATION_VECTOR;
 
 import android.util.Base64;
-import android.util.Log;
 
 import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.exceptions.Exception;
@@ -19,6 +17,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.util.Objects;
@@ -27,7 +26,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
 /**
@@ -36,14 +34,13 @@ import javax.crypto.spec.GCMParameterSpec;
 public class Decryptor {
     public static final String TAG = Decryptor.class.getSimpleName();
 
-    public static String decryptPassword(String cipherText, PrivateKey pKey) throws Exception {
+    public static String decryptPassword(String cipherText, PrivateKey pKey, String alias) throws Exception {
         String plainPassword = "";
         try {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
 
-            KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(ALIAS, null);
-            PrivateKey privateKey = privateKeyEntry.getPrivateKey();
+            PrivateKey privateKey = getPrivateKey(keyStore, alias);
 
             Cipher cipher = Cipher.getInstance("RSA/ECB/Pkcs1Padding");
 
@@ -80,7 +77,13 @@ public class Decryptor {
         return plainPassword;
     }
 
-    public static String decryptPrevPassword(String cipherText, SecretKey secretKey) throws Exception {
+    private static PrivateKey getPrivateKey(KeyStore keyStore, String alias) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException {
+        KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(alias, null);
+        return privateKeyEntry.getPrivateKey();
+    }
+
+    @Deprecated()
+    public static String decryptPrevPassword(String cipherText, PublicKey prevPublicKey) throws Exception {
         String plainPassword = "";
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -102,7 +105,7 @@ public class Decryptor {
             byte[] passwordStr = Base64.decode(actualCipher, Base64.DEFAULT);
 //            String ivStr = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
             byte[] iv = Base64.decode(ivString, Base64.DEFAULT);
-            cipher.init(Cipher.DECRYPT_MODE, secretKey,
+            cipher.init(Cipher.DECRYPT_MODE, prevPublicKey,
                     new GCMParameterSpec(128, iv));
 
             plainPassword = new String(cipher.doFinal(passwordStr), StandardCharsets.UTF_8);

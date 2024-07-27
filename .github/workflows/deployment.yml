@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build & Sign AAb
+    name: Build & Sign AAB
     runs-on: ubuntu-latest
 
     steps:

@@ -1,7 +1,8 @@
 package com.benatt.passwordsmanager.di.modules;
 
-import static com.benatt.passwordsmanager.utils.Constants.ALIAS;
-import static com.benatt.passwordsmanager.utils.Constants.PREV_ALIAS;
+import static com.benatt.passwordsmanager.BuildConfig.ALIAS;
+import static com.benatt.passwordsmanager.BuildConfig.PREV_ALIAS;
+import static com.benatt.passwordsmanager.utils.Constants.NAMED_PREV_KEY_ALIAS;
 
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
@@ -21,6 +22,7 @@ import java.util.Calendar;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -35,19 +37,30 @@ public class KeyStoreModule {
 
     @Singleton
     @Provides
-    public PublicKey providePrivateKey() {
+    public PublicKey providePublicKey() {
+        return getPublicKey(ALIAS);
+    }
+
+    @Singleton
+    @Provides
+    @Named(NAMED_PREV_KEY_ALIAS)
+    public PublicKey providesPrevPublicKey() {
+        return getPublicKey(PREV_ALIAS);
+    }
+
+    private PublicKey getPublicKey(String alias) {
         PublicKey publicKey = null;
         try {
             KeyStore keyStore = getKeyStore();
             if (keyStore != null) {
                 KeyStore.PrivateKeyEntry privateKeyEntry =
-                        (KeyStore.PrivateKeyEntry) keyStore.getEntry(ALIAS, null);
+                        (KeyStore.PrivateKeyEntry) keyStore.getEntry(alias, null);
                 if (privateKeyEntry != null)
                     publicKey = privateKeyEntry.getCertificate().getPublicKey();
                 else
-                    publicKey = createKeys();
+                    publicKey = createKeys(alias);
             } else {
-                publicKey = createKeys();
+                publicKey = createKeys(alias);
             }
         } catch (NoSuchAlgorithmException | UnrecoverableEntryException |
                  InvalidAlgorithmParameterException | NoSuchProviderException |
@@ -67,41 +80,7 @@ public class KeyStoreModule {
         return publicKey;
     }
 
-    @Singleton
-    @Provides
-    public SecretKey providesSecretKey() {
-        SecretKey secretKey = null;
-        try {
-            KeyStore keyStore = getKeyStore();
-            if (keyStore != null) {
-                KeyStore.SecretKeyEntry secretKeyEntry =
-                        (KeyStore.SecretKeyEntry) keyStore.getEntry(PREV_ALIAS, null);
-                if (secretKeyEntry != null)
-                    secretKey = secretKeyEntry.getSecretKey();
-                else
-                    secretKey = createSecretKey();
-            } else {
-                secretKey = createSecretKey();
-            }
-        } catch (NoSuchAlgorithmException | UnrecoverableEntryException |
-                 InvalidAlgorithmParameterException | NoSuchProviderException |
-                 KeyStoreException e) {
-
-            if (e instanceof NoSuchAlgorithmException)
-                throw new IllegalStateException("The algorithm specified is not correct");
-            else if (e instanceof UnrecoverableEntryException)
-                throw new IllegalStateException("No KeyStore for this application");
-            else if (e instanceof InvalidAlgorithmParameterException)
-                throw new IllegalStateException("Invalid algorithm parameter");
-            else if (e instanceof NoSuchProviderException)
-                throw new IllegalStateException("No Such Provider");
-            else throw new IllegalStateException("Key store exception.");
-        }
-
-        return secretKey;
-    }
-
-    private PublicKey createKeys() throws NoSuchProviderException, NoSuchAlgorithmException,
+    private PublicKey createKeys(String alias) throws NoSuchProviderException, NoSuchAlgorithmException,
             InvalidAlgorithmParameterException {
 
         Calendar start = Calendar.getInstance();
@@ -112,7 +91,7 @@ public class KeyStoreModule {
                 "AndroidKeyStore");
 
         KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(
-                ALIAS,
+                alias,
                 KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                 .setKeySize(2048)
                 .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
@@ -121,26 +100,6 @@ public class KeyStoreModule {
         kpg.initialize(keyGenParameterSpec);
 
         return kpg.generateKeyPair().getPublic();
-    }
-
-    private SecretKey createSecretKey() throws NoSuchAlgorithmException, NoSuchProviderException,
-            InvalidAlgorithmParameterException {
-
-        Calendar start = Calendar.getInstance();
-        Calendar end = Calendar.getInstance();
-        end.add(Calendar.YEAR, 1);
-
-        KeyGenerator kpg = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,
-                "AndroidKeyStore");
-
-        KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(
-                PREV_ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .build();
-        kpg.init(keyGenParameterSpec);
-
-        return kpg.generateKey();
     }
 
     private KeyStore getKeyStore() {

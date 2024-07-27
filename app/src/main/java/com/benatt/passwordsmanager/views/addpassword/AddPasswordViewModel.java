@@ -1,5 +1,7 @@
 package com.benatt.passwordsmanager.views.addpassword;
 
+import static com.benatt.passwordsmanager.utils.Constants.NAMED_PREV_KEY_ALIAS;
+
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -18,6 +20,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -35,15 +38,12 @@ public class AddPasswordViewModel extends ViewModel {
     public MutableLiveData<String> editAccountName = new MutableLiveData<>("");
 
     private PublicKey publicKey;
-    private SecretKey secretKey;
     private PasswordRepository passwordRepository;
 
     private Disposable disposable;
 
-    @Inject
-    public AddPasswordViewModel(PublicKey publicKey, SecretKey secretKey, PasswordRepository passwordRepository) {
+    public AddPasswordViewModel(PublicKey publicKey, PasswordRepository passwordRepository) {
         this.publicKey = publicKey;
-        this.secretKey = secretKey;
         this.passwordRepository = passwordRepository;
     }
 

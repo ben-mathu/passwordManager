@@ -22,7 +22,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.databinding.FragmentAuthBinding;
-import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.benatt.passwordsmanager.views.SharedViewModel;
 
 import javax.inject.Inject;
@@ -37,9 +36,6 @@ public class AuthFragment extends Fragment {
     private FragmentAuthBinding binding;
 
     private SharedViewModel sharedViewModel;
-
-    @Inject
-    ViewModelFactory viewModelFactory;
     private NavController controller;
 
     @Override

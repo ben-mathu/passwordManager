@@ -1,5 +1,8 @@
 package com.benatt.passwordsmanager.views;
 
+import static com.benatt.passwordsmanager.BuildConfig.PREV_ALIAS;
+import static com.benatt.passwordsmanager.utils.Constants.NAMED_PREV_KEY_ALIAS;
+
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -22,6 +25,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -40,14 +44,14 @@ public class SharedViewModel extends ViewModel {
 
     private Disposable disposable;
     private final PasswordRepository passwordRepository;
-    private SecretKey secretKey;
+    private PublicKey prevPublicKey;
     private PublicKey publicKey;
 
-    @Inject
-    public SharedViewModel(PasswordRepository passwordRepository, SecretKey secretKey,
+    public SharedViewModel(PasswordRepository passwordRepository,
+                           @Named(NAMED_PREV_KEY_ALIAS) PublicKey prevPublicKey,
                            PublicKey publicKey) {
         this.passwordRepository = passwordRepository;
-        this.secretKey = secretKey;
+        this.prevPublicKey = prevPublicKey;
         this.publicKey = publicKey;
     }
 
@@ -109,7 +113,7 @@ public class SharedViewModel extends ViewModel {
         try {
             List<Password> passwords = new ArrayList<>();
             for (Password password : list) {
-                String passwordStr = Decryptor.decryptPrevPassword(password.getCipher(), secretKey);
+                String passwordStr = Decryptor.decryptPassword(password.getCipher(), null, PREV_ALIAS);
                 if (!passwordStr.equals(""))
                     password.setCipher(Encryptor.encrypt(publicKey, passwordStr));
 
