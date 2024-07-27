@@ -16,7 +16,6 @@ android {
         versionName "4.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        signingConfig signingConfigs.debug
     }
 
     buildFeatures {
@@ -37,8 +36,6 @@ android {
             buildConfigField "String", "ALIAS", "\"${localProperties["key_alias"] ?: ""}\""
             buildConfigField "String", "PREV_ALIAS", "\"${localProperties["prev_key_alias"] ?: ""}\""
             buildConfigField "String", "MIGRATING_VERSION", "\"${localProperties["migrating_version"] ?: ""}\""
-
-            signingConfig null
         }
 
         debug {
