@@ -5,9 +5,10 @@ on:
     tags: [ 'v*.*.*' ]
 
 env:
-  key_alias: ${{ env.ALIAS }}
-  prev_key_alias: ${{ env.PREV_KEY_ALIAS }}
+  key_alias: ${{ vars.ALIAS }}
+  prev_key_alias: ${{ vars.PREV_KEY_ALIAS }}
   migrating_version: 4.0.0
+
 jobs:
   build:
     name: Build & Sign AAB
