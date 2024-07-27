@@ -4,6 +4,10 @@ on:
   push:
     tags: [ 'v*.*.*' ]
 
+env:
+  key_alias: ${{ secrets.KEY_ALIAS }}
+  prev_key_alias: ${{ secrets.PREV_KEY_ALIAS }}
+  migrating_version: 4.0.0
 jobs:
   build:
     name: Build & Sign AAB
@@ -14,7 +18,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Create a Location Properties File
-      run: echo "key_alias=${{ secrets.KEY_ALIAS }}\nprev_key_alias=${{ secrets.PREV_KEY_ALIAS }}\nmigrating_version=4.0.0" >> local.properties
+      run: echo "key_alias=$key_alias\nprev_key_alias=$prev_key_alias\nmigrating_version=$migrating_version" >> local.properties
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
