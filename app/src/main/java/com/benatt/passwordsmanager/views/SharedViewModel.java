@@ -7,13 +7,19 @@ import androidx.lifecycle.ViewModel;
 
 import com.benatt.passwordsmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
+import com.benatt.passwordsmanager.exceptions.Exception;
 import com.benatt.passwordsmanager.utils.Decryptor;
 import com.benatt.passwordsmanager.utils.Encryptor;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.inject.Inject;
 
@@ -124,6 +130,10 @@ public class SharedViewModel extends ViewModel {
                     );
         } catch (Exception e) {
             completeMsg.setValue(e.getMessage());
+        } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
+                 NoSuchAlgorithmException | InvalidKeyException e) {
+
+            Log.e(TAG, "useCurrentEncryptionScheme: Error", e);
         }
     }
 }

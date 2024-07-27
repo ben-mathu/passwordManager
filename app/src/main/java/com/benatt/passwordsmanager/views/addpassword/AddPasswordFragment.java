@@ -4,6 +4,7 @@ import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
 import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.FragmentAddPasswordBinding;
+import com.benatt.passwordsmanager.exceptions.Exception;
 import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -32,6 +34,7 @@ import javax.inject.Inject;
  * @author bernard
  */
 public class AddPasswordFragment extends Fragment {
+    private static final String TAG = AddPasswordFragment.class.getSimpleName();
     @Inject
     ViewModelFactory viewModelFactory;
 
@@ -93,7 +96,11 @@ public class AddPasswordFragment extends Fragment {
         // set password when the user is editing the password details
         String plainPassword = "";
         if (!password.getCipher().isEmpty()) {
-            plainPassword = decryptPassword(password.getCipher(), null);
+            try {
+                plainPassword = decryptPassword(password.getCipher(), null);
+            } catch (Exception e) {
+                Log.e(TAG, "onCreateView: Error", e);
+            }
             this.password.setCipher(plainPassword);
             binding.setPassword(password);
         }

@@ -48,6 +48,7 @@ import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
+import com.benatt.passwordsmanager.exceptions.Exception;
 import com.benatt.passwordsmanager.utils.Constants;
 import com.benatt.passwordsmanager.utils.Decryptor;
 import com.benatt.passwordsmanager.utils.DriveServiceHelper;
@@ -83,7 +84,10 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -229,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void certificateManenoz(GoogleAccountCredential credential,
                                     Drive googleDriveService)
-            throws Exception {
+            throws Exception, java.lang.Exception {
 
         // Get the backup folder id
         FileList driverList = null;
@@ -369,7 +373,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.back_passwords) {
-            createBackup();
+            try {
+                createBackup();
+            } catch (Exception e) {
+                Log.e(TAG, "onOptionsItemSelected: Error", e);
+            }
             return true;
         } else if (item.getItemId() == R.id.restore_password) {
             restorePasswords();
@@ -446,7 +454,7 @@ public class MainActivity extends AppCompatActivity {
                             ).setApplicationName("Passwords").build();
 
                             certificateManenoz(credential, googleDriveService);
-                        } catch (Exception e) {
+                        } catch (Exception | java.lang.Exception e) {
                             Log.e(TAG, "onStart: Error processing certificate", e);
                         }
                     }
@@ -610,7 +618,7 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(signInIntent, REQUEST_CODE_GOOGLE_SIGN_IN);
     }
 
-    private void createBackup() {
+    private void createBackup() throws Exception {
         showProgressBar("Uploading to Google drive");
 
         // Get a list of passwords

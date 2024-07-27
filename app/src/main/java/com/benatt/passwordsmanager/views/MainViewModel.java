@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 import com.benatt.passwordsmanager.data.models.passwords.PasswordRepository;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.data.models.user.UserRepository;
+import com.benatt.passwordsmanager.exceptions.Exception;
 import com.benatt.passwordsmanager.utils.Decryptor;
 import com.benatt.passwordsmanager.utils.Encryptor;
 import com.google.common.reflect.TypeToken;
@@ -96,12 +97,13 @@ public class MainViewModel extends ViewModel {
 
                 savePassword(password);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
+                 NoSuchAlgorithmException | InvalidKeyException e) {
+            Log.e(TAG, "savedAndDecrypt: Error", e);
         }
     }
 
-    public void decrypt(String jsonCipher, PrivateKey pKey) {
+    public void decrypt(String jsonCipher, PrivateKey pKey) throws Exception, NoSuchAlgorithmException, InvalidKeyException {
         List<Password> passwordList = new Gson().fromJson(jsonCipher,
                 new TypeToken<List<Password>>(){}.getType());
 
@@ -114,6 +116,8 @@ public class MainViewModel extends ViewModel {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException e) {
+            Log.e(TAG, "decrypt: Error", e);
         }
 //        decryptedPasswords.setValue(json);
     }
