@@ -21,7 +21,6 @@ public class PasswordsViewModel extends ViewModel {
     private PublicKey publicKey;
     public MutableLiveData<String> encryptedString = new MutableLiveData<>();
 
-    @Inject
     public PasswordsViewModel(
             PublicKey publicKey) {
         this.publicKey = publicKey;

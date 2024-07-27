@@ -7,9 +7,6 @@ public class Constants {
     public static final int DB_VERSION = 1;
     public static final String DB_NAME = "password.db";
 
-    public static final String ALIAS = "mobius_the_living_vampire";
-    public static final String PREV_ALIAS = "vision";
-
     public static final String INITIALIZATION_VECTOR = "initialization_vector";
 
     public static final String DELIMITER = ":";
@@ -27,4 +24,6 @@ public class Constants {
     public static final String FOLDER_ID = "folder_id";
     public static final String IS_CERT_UPLOADED = "cert_uploaded";
     public static final String PASSWORDS_MIGRATED = "passwords_migrated";
+
+    public static final String NAMED_PREV_KEY_ALIAS = "PREV_ALIAS";
 }

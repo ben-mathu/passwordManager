@@ -28,6 +28,7 @@
     <string name="restore_password">Restore Password</string>
     <string name="refresh_list">Refresh List</string>
     <string name="sign_out">Sign Out</string>
+    <string name="sign_in">Sign In</string>
     <string name="encryption_status">Encryption Status</string>
     <string name="search">Search</string>
     <string name="copy_to_clipboard">Copy</string>
