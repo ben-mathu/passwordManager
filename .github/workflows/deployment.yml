@@ -6,12 +6,21 @@ on:
 
 jobs:
   build:
-    name: Build & Sign AAb
+    name: Build & Sign AAB
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Set up environment variable
+      run: |
+        echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+        echo "PREV_KEY_ALIAS=${{ secrets.PREV_KEY_ALIAS }}" >> $GITHUB_ENV
+
+    - name: Create a Location Properties File
+      run: |
+        printf "key_alias=$KEY_ALIAS\nprev_key_alias=$PREV_KEY_ALIAS\nmigrating_version=4.0.3" >> local.properties
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4

@@ -40,6 +40,10 @@
     <item
         android:id="@+id/sign_out"
         android:title="@string/sign_out"
-        android:icon="@drawable/ic_action_refresh"
-        app:showAsAction="ifRoom" />
+        android:visible="false"/>
+
+    <item
+        android:id="@+id/sign_in"
+        android:title="@string/sign_in"
+        android:visible="false"/>
 </menu>

@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.PasswordItemBinding;
-import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.benatt.passwordsmanager.views.passwords.OnItemClick;
 
 import java.util.ArrayList;
@@ -28,9 +27,6 @@ public class PasswordsAdapter extends RecyclerView.Adapter<PasswordsViewHolder> 
     private List<Password> passwords;
 
     private boolean isDecrypted = false;
-
-    @Inject
-    ViewModelFactory viewModelFactory;
 
     private PasswordsViewHolder viewHolder;
 

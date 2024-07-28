@@ -39,7 +39,7 @@ public class MainViewModel extends ViewModel {
     private final UserRepository userRepo;
     private PasswordRepository passwordRepo;
     private PublicKey publicKey;
-    private SecretKey secretKey;
+    private PublicKey prevPublicKey;
 
     public MutableLiveData<String> message = new MutableLiveData<>();
     public MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
@@ -49,13 +49,12 @@ public class MainViewModel extends ViewModel {
     private Disposable disposable;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
-    @Inject
     public MainViewModel(UserRepository userRepo, PasswordRepository passwordRepo,
-                         PublicKey publicKey, SecretKey secretKey) {
+                         PublicKey publicKey, PublicKey prevPublicKey) {
         this.userRepo = userRepo;
         this.passwordRepo = passwordRepo;
         this.publicKey = publicKey;
-        this.secretKey = secretKey;
+        this.prevPublicKey = prevPublicKey;
     }
 
     @Override
@@ -101,25 +100,6 @@ public class MainViewModel extends ViewModel {
                  NoSuchAlgorithmException | InvalidKeyException e) {
             Log.e(TAG, "savedAndDecrypt: Error", e);
         }
-    }
-
-    public void decrypt(String jsonCipher, PrivateKey pKey) throws Exception, NoSuchAlgorithmException, InvalidKeyException {
-        List<Password> passwordList = new Gson().fromJson(jsonCipher,
-                new TypeToken<List<Password>>(){}.getType());
-
-        try {
-            for (Password password : passwordList) {
-                String passwordStr = Decryptor.decryptPassword(password.getCipher().trim(), pKey);
-                password.setCipher(Encryptor.encrypt(publicKey, passwordStr));
-
-                savePassword(password);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException e) {
-            Log.e(TAG, "decrypt: Error", e);
-        }
-//        decryptedPasswords.setValue(json);
     }
 
     private void savePassword(Password password) {

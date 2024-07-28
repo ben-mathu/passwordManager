@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.benardmathu.tokengeneration.GenerateRandomString;
+import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
@@ -35,6 +36,7 @@ import javax.inject.Inject;
  */
 public class AddPasswordFragment extends Fragment {
     private static final String TAG = AddPasswordFragment.class.getSimpleName();
+
     @Inject
     ViewModelFactory viewModelFactory;
 
@@ -97,7 +99,7 @@ public class AddPasswordFragment extends Fragment {
         String plainPassword = "";
         if (!password.getCipher().isEmpty()) {
             try {
-                plainPassword = decryptPassword(password.getCipher(), null);
+                plainPassword = decryptPassword(password.getCipher(), null, BuildConfig.ALIAS);
             } catch (Exception e) {
                 Log.e(TAG, "onCreateView: Error", e);
             }

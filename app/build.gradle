@@ -2,6 +2,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+
 android {
     compileSdk 34
 
@@ -9,11 +12,10 @@ android {
         applicationId "com.benatt.passwordsmanager"
         minSdkVersion 24
         targetSdk 34
-        versionCode 22
-        versionName "3.1.0"
+        versionCode 26
+        versionName "4.0.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        signingConfig signingConfigs.debug
     }
 
     buildFeatures {
@@ -30,6 +32,16 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            buildConfigField "String", "ALIAS", "\"${localProperties["key_alias"] ?: ""}\""
+            buildConfigField "String", "PREV_ALIAS", "\"${localProperties["prev_key_alias"] ?: ""}\""
+            buildConfigField "String", "MIGRATING_VERSION", "\"${localProperties["migrating_version"] ?: ""}\""
+        }
+
+        debug {
+            buildConfigField "String", "ALIAS", "\"${localProperties["key_alias"] ?: ""}\""
+            buildConfigField "String", "PREV_ALIAS", "\"${localProperties["prev_key_alias"] ?: ""}\""
+            buildConfigField "String", "MIGRATING_VERSION", "\"${localProperties["migrating_version"] ?: ""}\""
         }
     }
 

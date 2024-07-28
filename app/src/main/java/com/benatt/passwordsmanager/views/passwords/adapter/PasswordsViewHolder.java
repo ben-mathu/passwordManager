@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.PasswordItemBinding;
@@ -50,7 +51,7 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
             if (!isDecrypted) {
                 onItemClick.startKeyguardActivity(() -> {
                     try {
-                        String cipher = decryptPassword(password.getCipher(), null);
+                        String cipher = decryptPassword(password.getCipher(), null, BuildConfig.ALIAS);
                         binding.passwordValue.setText(cipher);
                         binding.btnDecrypt.setText(R.string.hide_password);
                         binding.lockPassword.setImageDrawable(
@@ -82,7 +83,7 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
 
                 ClipData clip = ClipData
                         .newPlainText("password",
-                                decryptPassword(password.getCipher(), null));
+                                decryptPassword(password.getCipher(), null, BuildConfig.ALIAS));
                 cm.setPrimaryClip(clip);
                 Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {

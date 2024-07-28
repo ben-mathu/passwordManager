@@ -1,5 +1,8 @@
 package com.benatt.passwordsmanager.views;
 
+import static com.benatt.passwordsmanager.BuildConfig.PREV_ALIAS;
+import static com.benatt.passwordsmanager.utils.Constants.NAMED_PREV_KEY_ALIAS;
+
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -20,8 +23,7 @@ import java.util.List;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.inject.Inject;
+import javax.inject.Named;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -40,14 +42,14 @@ public class SharedViewModel extends ViewModel {
 
     private Disposable disposable;
     private final PasswordRepository passwordRepository;
-    private SecretKey secretKey;
+    private PublicKey prevPublicKey;
     private PublicKey publicKey;
 
-    @Inject
-    public SharedViewModel(PasswordRepository passwordRepository, SecretKey secretKey,
+    public SharedViewModel(PasswordRepository passwordRepository,
+                           @Named(NAMED_PREV_KEY_ALIAS) PublicKey prevPublicKey,
                            PublicKey publicKey) {
         this.passwordRepository = passwordRepository;
-        this.secretKey = secretKey;
+        this.prevPublicKey = prevPublicKey;
         this.publicKey = publicKey;
     }
 
@@ -106,34 +108,34 @@ public class SharedViewModel extends ViewModel {
     }
 
     public void useCurrentEncryptionScheme(List<Password> list) {
-        try {
-            List<Password> passwords = new ArrayList<>();
-            for (Password password : list) {
-                String passwordStr = Decryptor.decryptPrevPassword(password.getCipher(), secretKey);
+        List<Password> passwords = new ArrayList<>();
+        for (Password password : list) {
+            try {
+                String passwordStr = Decryptor.decryptPassword(password.getCipher(), null, PREV_ALIAS);
                 if (!passwordStr.equals(""))
                     password.setCipher(Encryptor.encrypt(publicKey, passwordStr));
 
                 passwords.add(password);
+            } catch (Exception e) {
+                completeMsg.setValue(e.getMessage());
+            } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
+                     NoSuchAlgorithmException | InvalidKeyException e) {
+
+                Log.e(TAG, "useCurrentEncryptionScheme: Error", e);
             }
-
-            disposable = passwordRepository.saveAll(passwords)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            msg -> {
-                                completeMsg.setValue(msg);
-                                refreshList.setValue(true);
-                            },
-                            throwable -> {
-                                completeMsg.setValue(throwable.getMessage());
-                            }
-                    );
-        } catch (Exception e) {
-            completeMsg.setValue(e.getMessage());
-        } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
-                 NoSuchAlgorithmException | InvalidKeyException e) {
-
-            Log.e(TAG, "useCurrentEncryptionScheme: Error", e);
         }
+
+        disposable = passwordRepository.saveAll(passwords)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        msg -> {
+                            completeMsg.setValue(msg);
+                            refreshList.setValue(true);
+                        },
+                        throwable -> {
+                            completeMsg.setValue(throwable.getMessage());
+                        }
+                );
     }
 }
