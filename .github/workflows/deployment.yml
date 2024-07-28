@@ -20,7 +20,7 @@ jobs:
 
     - name: Create a Location Properties File
       run: |
-        printf "key_alias=$KEY_ALIAS\nprev_key_alias=$PREV_KEY_ALIAS\nmigrating_version=4.0.0" >> local.properties
+        printf "key_alias=$KEY_ALIAS\nprev_key_alias=$PREV_KEY_ALIAS\nmigrating_version=4.0.2" >> local.properties
         cat local.properties
 
     - name: Set up JDK 17
