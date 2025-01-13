@@ -26,4 +26,5 @@ public class Constants {
     public static final String PASSWORDS_MIGRATED = "passwords_migrated";
 
     public static final String NAMED_PREV_KEY_ALIAS = "PREV_ALIAS";
+    public static final String ID_TOKEN = "id_token";
 }
