@@ -252,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "certificateManenoz -> Error retrieving cert", e);
         }
 
         // Create the backup folder if it does not exist
@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                     .setFields("id")
                     .execute();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "createFolder -> Error creating folder", e);
         }
         return fileDirMetadata;
     }
@@ -382,11 +382,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.back_passwords) {
-            try {
-                createBackup();
-            } catch (Exception e) {
-                Log.e(TAG, "onOptionsItemSelected: Error", e);
-            }
+            createBackup();
             return true;
         } else if (item.getItemId() == R.id.restore_password) {
             restorePasswords();
@@ -398,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 generateQRCode();
             } catch (WriterException e) {
-                e.printStackTrace();
+                Log.e(TAG, "onOptionsItemSelected -> Error generating QR code", e);
             }
             return true;
         } else if (item.getItemId() == R.id.scan_qr) {
@@ -477,7 +473,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }).start();
             } catch (ApiException e) {
-                e.printStackTrace();
+                Log.e(TAG, "onActivityResult -> sign in failed", e);
             }
 
         } else if (requestCode == PIN_REQUEST_CODE) {
@@ -579,7 +575,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "restorePasswords -> Error restoring password", e);
                         }
 
                         List<Password> passwords = new Gson().fromJson(jsonCipher,
@@ -609,7 +605,7 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(signInIntent, REQUEST_CODE_GOOGLE_SIGN_IN);
     }
 
-    private void createBackup() throws Exception {
+    private void createBackup() {
         showProgressBar("Uploading to Google drive");
 
         // Get a list of passwords
@@ -617,11 +613,6 @@ public class MainActivity extends AppCompatActivity {
             mainViewModel.getPasswords();
         }
 
-        for (Password password : passwordList) {
-            password.setCipher(Decryptor.decryptPassword(password.getCipher(), null, BuildConfig.ALIAS));
-        }
-
-        String json = new Gson().toJson(passwordList);
         String filePath = "/storage/emulated/0/myfile.txt";
 
         SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
@@ -629,80 +620,87 @@ public class MainActivity extends AppCompatActivity {
         // backup file name
         String fileName = sp.format(new Date()) + ".txt";
 
-        // Create output stream to write backup to
-        try (FileOutputStream fos = openFileOutput(fileName, Context.MODE_PRIVATE)) {
+        // Create a background thread for network calls
+        new Thread(() -> {
+            // Create output stream to write backup to
+            try (FileOutputStream fos = openFileOutput(fileName, Context.MODE_PRIVATE)) {
 
-            OutputStreamWriter writer = new OutputStreamWriter(fos);
+                OutputStreamWriter writer = new OutputStreamWriter(fos);
 
-            writer.write(json);
+                for (Password password : passwordList) {
+                    password.setCipher(Decryptor.decryptPassword(password.getCipher(), null, ALIAS));
+                }
 
-            writer.flush();
-            writer.close();
+                String json = new Gson().toJson(passwordList);
+                writer.write(json);
 
-            File fileOutput = new File(getApplicationContext().getFilesDir(), fileName);
+                writer.flush();
+                writer.close();
 
-            // Get user credentials
-            GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(this,
-                    Arrays.asList(DriveScopes.DRIVE_FILE));
-            credential.setSelectedAccount(account.getAccount());
+                File fileOutput = new File(getApplicationContext().getFilesDir(), fileName);
 
-            // Create a Google Drive service
-            Drive googleDriveService = new Drive.Builder(
-                    AndroidHttp.newCompatibleTransport(),
-                    new GsonFactory(),
-                    credential
-            ).setApplicationName("Passwords").build();
+                // Get user credentials
+                GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(this,
+                        Arrays.asList(DriveScopes.DRIVE_FILE));
+                credential.setSelectedAccount(account.getAccount());
 
-            // Create a background thread for network calls
-            new Thread(() -> {
-                com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
-                fileDirMetadata.setName(BACKUP_FOLDER);
-                fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
+                // Create a Google Drive service
+                Drive googleDriveService = new Drive.Builder(
+                        AndroidHttp.newCompatibleTransport(),
+                        new GsonFactory(),
+                        credential
+                ).setApplicationName("Passwords").build();
 
-                com.google.api.services.drive.model.File backupFolder = null;
+                    com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
+                    fileDirMetadata.setName(BACKUP_FOLDER);
+                    fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
 
-                String fileId = "";
-                // Get the backup folder id
-                String query = "mimeType = 'application/vnd.google-apps.folder'" +
-                        " and 'root' in parents and trashed = false";
-                FileList driverList = null;
-                try {
-                    driverList = googleDriveService.files().list().setQ(query)
-                            .setFields("files(id, name)")
-                            .execute();
+                    com.google.api.services.drive.model.File backupFolder = null;
 
-                    List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
-                    for (com.google.api.services.drive.model.File file : fileList) {
-                        if (BACKUP_FOLDER.equals(file.getName())) {
-                            backupFolder = file;
-                            fileId = file.getId();
-                            break;
+                    String fileId = "";
+                    // Get the backup folder id
+                    String query = "mimeType = 'application/vnd.google-apps.folder'" +
+                            " and 'root' in parents and trashed = false";
+                    FileList driverList = null;
+                    try {
+                        driverList = googleDriveService.files().list().setQ(query)
+                                .setFields("files(id, name)")
+                                .execute();
+
+                        List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
+                        for (com.google.api.services.drive.model.File file : fileList) {
+                            if (BACKUP_FOLDER.equals(file.getName())) {
+                                backupFolder = file;
+                                fileId = file.getId();
+                                break;
+                            }
                         }
+                    } catch (IOException e) {
+                        Log.e(TAG, "createBackup -> Error retrieving list", e);
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
 
-                fileDirMetadata = new com.google.api.services.drive.model.File();
-                fileDirMetadata.setName(fileOutput.getName());
-                fileDirMetadata.setParents(Collections.singletonList(fileId));
-                FileContent fileContent = new FileContent("text/plain", fileOutput);
-                com.google.api.services.drive.model.File file = null;
-                try {
-                    file = googleDriveService.files().create(fileDirMetadata, fileContent)
-                            .setFields("id, parents")
-                            .execute();
+                    fileDirMetadata = new com.google.api.services.drive.model.File();
+                    fileDirMetadata.setName(fileOutput.getName());
+                    fileDirMetadata.setParents(Collections.singletonList(fileId));
+                    FileContent fileContent = new FileContent("text/plain", fileOutput);
+                    com.google.api.services.drive.model.File file = null;
+                    try {
+                        file = googleDriveService.files().create(fileDirMetadata, fileContent)
+                                .setFields("id, parents")
+                                .execute();
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+                    } catch (IOException e) {
+                        Log.e(TAG, "createBackup -> Error creating backup", e);
+                    } finally {
+                        new Handler(getMainLooper())
+                                .post(progressDialog::dismiss);
+                    }
+            } catch (IOException | Exception e) {
+                Log.e(TAG, "createBackup -> Error creating backup", e);
                 new Handler(getMainLooper())
                         .post(progressDialog::dismiss);
-            }).start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            }
+        }).start();
     }
 
     public void showProgressBar(String message) {
