@@ -485,6 +485,7 @@ public class MainActivity extends AppCompatActivity {
                 preferences.edit()
                         .putBoolean(SIGNED_IN, true)
                         .apply();
+                requestSignIn();
             } else {
                 finish();
             }
