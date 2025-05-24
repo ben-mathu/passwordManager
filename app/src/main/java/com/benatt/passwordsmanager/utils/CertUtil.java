@@ -20,12 +20,10 @@ import java.security.KeyStore;
 import java.util.Collections;
 
 /**
- * @author ben-mathu
- * @date 2/15/23
+ * @author ben-mathu 2/15/23
  */
 public class CertUtil {
     public static void exportPrivateKey(KeyStore keyStore,
-                                        com.google.api.services.drive.model.File fileDirMetadata,
                                         com.google.api.services.drive.model.File backupFolder,
                                         Drive googleDriveService, Context context, SharedPreferences preferences)
             throws Exception {
@@ -50,15 +48,14 @@ public class CertUtil {
         File fileOutput = new File(context.getFilesDir(), PRIVATE_KEY_FILE_NAME);
 
         // Create the backup folder if it does not exist
-        fileDirMetadata = new com.google.api.services.drive.model.File();
+        com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
         fileDirMetadata.setName(fileOutput.getName());
         fileDirMetadata.setParents(Collections.singletonList(backupFolder.getId()));
         FileContent fileContent = new FileContent("text/plain", fileOutput);
 
-        com.google.api.services.drive.model.File file =
-                googleDriveService.files().create(fileDirMetadata, fileContent)
-                        .setFields("id, parents")
-                        .execute();
+        googleDriveService.files().create(fileDirMetadata, fileContent)
+                .setFields("id, parents")
+                .execute();
 
         preferences.edit()
                 .putBoolean(IS_CERT_UPLOADED, true)

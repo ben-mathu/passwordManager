@@ -81,7 +81,6 @@ public class KeyStoreModule {
     private PublicKey createKeys(String alias) throws NoSuchProviderException, NoSuchAlgorithmException,
             InvalidAlgorithmParameterException {
 
-        Calendar start = Calendar.getInstance();
         Calendar end = Calendar.getInstance();
         end.add(Calendar.YEAR, 1);
 

@@ -266,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         if (privateKeyFile == null && keyStore.containsAlias(ALIAS))
-            exportPrivateKey(keyStore, fileDirMetadata, backupFolder, googleDriveService, this, preferences);
+            exportPrivateKey(keyStore, backupFolder, googleDriveService, this, preferences);
     }
 
     private com.google.api.services.drive.model.File createFolder(Drive googleDriveService,
