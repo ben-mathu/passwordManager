@@ -128,4 +128,7 @@ dependencies {
 
     // Preferences
     implementation(libs.preferences)
+
+    // Billing
+    implementation(libs.billing)
 }
