@@ -1,7 +1,5 @@
 package com.benatt.passwordsmanager.views.addpassword;
 
-import static com.benatt.passwordsmanager.utils.Constants.NAMED_PREV_KEY_ALIAS;
-
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -18,10 +16,9 @@ import java.security.PublicKey;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.inject.Inject;
-import javax.inject.Named;
 
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -29,6 +26,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * @author bernard
  */
+@HiltViewModel
 public class AddPasswordViewModel extends ViewModel {
     public static final String TAG = AddPasswordViewModel.class.getSimpleName();
 
@@ -37,11 +35,12 @@ public class AddPasswordViewModel extends ViewModel {
     public MutableLiveData<String> editPassword = new MutableLiveData<>("");
     public MutableLiveData<String> editAccountName = new MutableLiveData<>("");
 
-    private PublicKey publicKey;
-    private PasswordRepository passwordRepository;
+    private final PublicKey publicKey;
+    private final PasswordRepository passwordRepository;
 
     private Disposable disposable;
 
+    @Inject
     public AddPasswordViewModel(PublicKey publicKey, PasswordRepository passwordRepository) {
         this.publicKey = publicKey;
         this.passwordRepository = passwordRepository;
@@ -65,7 +64,9 @@ public class AddPasswordViewModel extends ViewModel {
             } else {
                 String passwordStr = editPassword.getValue();
                 String accountNameStr = editAccountName.getValue();
-                if (passwordStr.isEmpty())
+                if (passwordStr == null || accountNameStr == null) {
+                    msgView.setValue("all inputs are required");
+                } else if (passwordStr.isEmpty())
                     msgView.setValue("Password is empty");
                 else if (accountNameStr.isEmpty())
                     msgView.setValue("Please provide the account name");

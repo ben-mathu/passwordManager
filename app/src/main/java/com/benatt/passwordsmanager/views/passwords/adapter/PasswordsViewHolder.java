@@ -10,6 +10,7 @@ import android.os.CountDownTimer;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.benatt.passwordsmanager.BuildConfig;
@@ -17,7 +18,6 @@ import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.PasswordItemBinding;
 import com.benatt.passwordsmanager.exceptions.Exception;
-import com.benatt.passwordsmanager.utils.OnActivityResult;
 import com.benatt.passwordsmanager.views.passwords.OnItemClick;
 
 /**
@@ -27,8 +27,6 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     public static final int REQUEST_CODE = 1101;
     public static final int START_PASSWORD_DETAIL_SCREEN = 1102;
     public static final String TAG = PasswordsViewHolder.class.getSimpleName();
-
-    private OnActivityResult onActivityResult;
 
     private final PasswordItemViewModel passwordItemViewModel = new PasswordItemViewModel();
     private final PasswordItemBinding binding;
@@ -55,10 +53,10 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                         binding.passwordValue.setText(cipher);
                         binding.btnDecrypt.setText(R.string.hide_password);
                         binding.lockPassword.setImageDrawable(
-                                context.getResources().getDrawable(R.drawable.ic_unlocked_password)
+                                ContextCompat.getDrawable(context, R.drawable.ic_unlocked_password)
                         );
                         binding.lockPassword.setColorFilter(
-                                context.getResources().getColor(R.color.colorAccent));
+                                ContextCompat.getColor(context, R.color.colorAccent));
                         isDecrypted = true;
 
                         startTimer();
@@ -70,7 +68,7 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
                 binding.btnDecrypt.setText(context.getString(R.string.show_password));
                 binding.lockPassword.setImageDrawable(
-                        context.getResources().getDrawable(R.drawable.ic_locked_password)
+                        ContextCompat.getDrawable(context, R.drawable.ic_locked_password)
                 );
                 isDecrypted = false;
             }
@@ -108,14 +106,10 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
                 binding.btnDecrypt.setText(context.getString(R.string.show_password));
                 binding.lockPassword.setImageDrawable(
-                        context.getResources().getDrawable(R.drawable.ic_locked_password)
+                        ContextCompat.getDrawable(context, R.drawable.ic_locked_password)
                 );
                 isDecrypted = false;
             }
         }.start();
-    }
-
-    public OnActivityResult getOnActivityResult() {
-        return onActivityResult;
     }
 }

@@ -5,30 +5,18 @@ import static com.benatt.passwordsmanager.utils.Constants.IS_CERT_UPLOADED;
 import static com.benatt.passwordsmanager.utils.Constants.PRIVATE_KEY_FILE_NAME;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
-import com.benatt.passwordsmanager.MainApp;
 import com.google.api.client.http.FileContent;
 import com.google.api.services.drive.Drive;
 
 import org.apache.commons.codec.binary.Base64;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.InvalidObjectException;
 import java.io.OutputStreamWriter;
-import java.security.KeyFactory;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Collections;
 
 /**
@@ -39,7 +27,7 @@ public class CertUtil {
     public static void exportPrivateKey(KeyStore keyStore,
                                         com.google.api.services.drive.model.File fileDirMetadata,
                                         com.google.api.services.drive.model.File backupFolder,
-                                        Drive googleDriveService, Context context)
+                                        Drive googleDriveService, Context context, SharedPreferences preferences)
             throws Exception {
 
         // Export keystore certificate and store in Google Drive
@@ -72,7 +60,7 @@ public class CertUtil {
                         .setFields("id, parents")
                         .execute();
 
-        MainApp.getPreferences().edit()
+        preferences.edit()
                 .putBoolean(IS_CERT_UPLOADED, true)
                 .apply();
     }

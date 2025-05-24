@@ -4,9 +4,9 @@ package com.benatt.passwordsmanager.utils;
 import static com.benatt.passwordsmanager.utils.Constants.DELIMITER;
 import static com.benatt.passwordsmanager.utils.Constants.INITIALIZATION_VECTOR;
 
+import android.content.SharedPreferences;
 import android.util.Base64;
 
-import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.exceptions.Exception;
 
 import java.io.IOException;
@@ -29,10 +29,9 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 
 /**
- * @time 23/11/20
+ * @author ben-mathu 23/11/20
  */
 public class Decryptor {
-    public static final String TAG = Decryptor.class.getSimpleName();
 
     public static String decryptPassword(String cipherText, PrivateKey pKey, String alias) throws Exception {
         String plainPassword = "";
@@ -46,21 +45,16 @@ public class Decryptor {
 
             String[] cipherProps;
             String actualCipher;
-            String ivString;
             if (cipherText.contains(DELIMITER)) {
                 cipherProps = cipherText.split(DELIMITER);
                 actualCipher = cipherProps[1];
-                ivString = cipherProps[0];
             } else {
                 // for those passwords that used previous technique to encrypt passwords
                 // encryption used a static variable for the initialization vector
                 actualCipher = cipherText;
-                ivString = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
             }
 
             byte[] passwordStr = Base64.decode(actualCipher, Base64.DEFAULT);
-//            String ivStr = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
-            byte[] iv = Base64.decode(ivString, Base64.DEFAULT);
             cipher.init(Cipher.DECRYPT_MODE, pKey != null ? pKey : privateKey);
 
             plainPassword = new String(cipher.doFinal(passwordStr));
@@ -83,8 +77,8 @@ public class Decryptor {
     }
 
     @Deprecated()
-    public static String decryptPrevPassword(String cipherText, PublicKey prevPublicKey) throws Exception {
-        String plainPassword = "";
+    public static String decryptPrevPassword(String cipherText, PublicKey prevPublicKey, SharedPreferences preferences) throws Exception {
+        String plainPassword;
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 
@@ -99,7 +93,7 @@ public class Decryptor {
                 // for those passwords that used previous technique to encrypt passwords
                 // encryption used a static variable for the initialization vector
                 actualCipher = cipherText;
-                ivString = MainApp.getPreferences().getString(INITIALIZATION_VECTOR, "");
+                ivString = preferences.getString(INITIALIZATION_VECTOR, "");
             }
 
             byte[] passwordStr = Base64.decode(actualCipher, Base64.DEFAULT);

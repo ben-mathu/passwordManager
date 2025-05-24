@@ -1,7 +1,7 @@
 package com.benatt.passwordsmanager.data.models.user;
 
 import com.benatt.passwordsmanager.data.models.Dao;
-import com.benatt.passwordsmanager.data.models.passwords.model.Password;
+import com.benatt.passwordsmanager.data.models.user.model.User;
 
 import java.util.List;
 
@@ -12,13 +12,13 @@ import io.reactivex.Observable;
 /**
  * @author bernard
  */
-public class UserRepository extends Dao<Password> {
+public class UserRepository extends Dao<User> {
 
     @Inject
     public UserRepository() {}
 
     @Override
-    public Observable<String> saveAll(List<Password> items) {
+    public Observable<String> saveAll(List<User> items) {
         return null;
     }
 }

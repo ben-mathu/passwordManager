@@ -1,17 +1,23 @@
-apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
+//    alias(libs.plugins.kotlin)
+    alias(libs.plugins.dagger.hilt)
+//    alias(libs.plugins.kotlin.kapt)
+//    alias(libs.plugins.ksp)
+}
 
 def localProperties = new Properties()
 localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 
 android {
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.benatt.passwordsmanager"
         minSdkVersion 24
-        targetSdk 34
+        targetSdk 35
         versionCode 28
         versionName "4.0.5"
 
@@ -21,6 +27,7 @@ android {
     buildFeatures {
         dataBinding true
         viewBinding true
+        buildConfig true
     }
 
     compileOptions {
@@ -46,7 +53,7 @@ android {
     }
 
     configurations {
-        all { // You should exclude one of them not both of them
+        configureEach { // You should exclude one of them not both of them
             exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
         }
     }
@@ -57,65 +64,68 @@ android {
     }
 
     namespace 'com.benatt.passwordsmanager'
+//    kotlinOptions {
+//        jvmTarget = '1.8'
+//    }
 }
 
 dependencies {
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
 
-    implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.navigation:navigation-fragment:2.6.0'
-    implementation 'androidx.navigation:navigation-ui:2.6.0'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.navigation.fragment)
+    implementation(libs.androidx.navigation.ui)
+    implementation(libs.androidx.corektx)
+    implementation(libs.androidx.lifecycle.viewmodel)
 
-    implementation "com.google.android.material:material:1.9.0"
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.test.espresso)
+
+    implementation(libs.google.material)
 
     // Dagger
-    implementation 'com.google.dagger:dagger:2.35.1'
-    androidTestImplementation "com.google.dagger:hilt-android-testing:2.29-alpha"
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.35.1'
+    implementation(libs.hilt.android)
+    annotationProcessor(libs.hilt.compiler)
 
     // Room
-    implementation 'androidx.room:room-runtime:2.5.2'
-    implementation 'androidx.room:room-rxjava2:2.5.2'
-    annotationProcessor 'androidx.room:room-compiler:2.5.2'
-
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.rxjava2)
+    annotationProcessor(libs.androidx.room.compiler)
     // RxJava
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.9'
+    implementation(libs.rxandroid)
+    implementation(libs.rxjava)
 
-    implementation "androidx.fragment:fragment:1.6.0"
+    implementation(libs.androidx.fragment)
 
     // Gson
-    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation(libs.gson)
 
-    implementation 'com.google.android.gms:play-services-auth:20.5.0'
-    implementation ('com.google.apis:google-api-services-drive:v3-rev136-1.25.0') {
-        exclude group: 'org.apache.httpcomponets'
-    }
+    implementation(libs.google.play.services.auth)
 
-    implementation ('com.google.api-client:google-api-client-android:1.26.0') {
-        exclude group: 'org.apache.httpcomponets'
-    }
+    implementation(libs.google.api.services.drive)
 
-    implementation 'com.google.http-client:google-http-client-gson:1.42.2'
+    implementation(libs.google.api.client.android)
 
-    implementation platform('com.google.firebase:firebase-bom:30.1.0')
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation(libs.google.http.client.gson)
+
+    implementation platform(libs.firebase.bom)
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
     // ML Kit
-    implementation 'com.google.mlkit:barcode-scanning:17.1.0'
+    implementation(libs.mlkit.barcode.scanning)
 
-    // ZXing
-    implementation 'com.google.zxing:core:3.4.0'
+    // Zxing
+    implementation(libs.zxing.core)
 
-    implementation 'com.google.auth:google-auth-library-oauth2-http:1.11.0'
+    implementation(libs.google.auth.oauth2.http)
 
-    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.6.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime:2.6.1'
+    implementation(libs.androidx.lifecycle.extensions)
+    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.runtime)
+
+    // Preferences
+    implementation(libs.preferences)
 }

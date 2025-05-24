@@ -19,26 +19,22 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.benardmathu.tokengeneration.GenerateRandomString;
 import com.benatt.passwordsmanager.BuildConfig;
-import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.FragmentAddPasswordBinding;
 import com.benatt.passwordsmanager.exceptions.Exception;
-import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.security.SecureRandom;
 
-import javax.inject.Inject;
+import dagger.hilt.android.AndroidEntryPoint;
 
 /**
  * @author bernard
  */
+@AndroidEntryPoint
 public class AddPasswordFragment extends Fragment {
     private static final String TAG = AddPasswordFragment.class.getSimpleName();
-
-    @Inject
-    ViewModelFactory viewModelFactory;
 
     private AddPasswordViewModel addPasswordViewModel;
     private FragmentAddPasswordBinding binding;
@@ -59,10 +55,8 @@ public class AddPasswordFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        ((MainApp) getActivity().getApplicationContext()).getPasswordsComponent().inject(this);
-
         binding = FragmentAddPasswordBinding.inflate(inflater, container, false);
-        addPasswordViewModel = new ViewModelProvider(this, viewModelFactory).get(AddPasswordViewModel.class);
+        addPasswordViewModel = new ViewModelProvider(this).get(AddPasswordViewModel.class);
 
         if (password == null) {
             this.password = new Password();
@@ -108,7 +102,7 @@ public class AddPasswordFragment extends Fragment {
         }
 
         //        binding.edtPassword.setText(plainPassword);
-        binding.edtLength.setText(String.valueOf(plainPassword.length() > 0 ? plainPassword.length() : 12));
+        binding.edtLength.setText(String.valueOf(!plainPassword.isEmpty() ? plainPassword.length() : 12));
 
         binding.btnSetPassword
                 .setOnClickListener(view -> binding.edtPassword.setText(generatePassword(view)));
@@ -117,7 +111,7 @@ public class AddPasswordFragment extends Fragment {
 
         addPasswordViewModel.msgView.observe(
                 getViewLifecycleOwner(),
-                message -> showMessage(message, getActivity().findViewById(android.R.id.content)));
+                message -> showMessage(message, requireActivity().findViewById(android.R.id.content)));
 
         addPasswordViewModel.goToPasswordsFragments.observe(
                 getViewLifecycleOwner(),

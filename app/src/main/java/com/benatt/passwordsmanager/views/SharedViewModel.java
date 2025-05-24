@@ -1,7 +1,6 @@
 package com.benatt.passwordsmanager.views;
 
 import static com.benatt.passwordsmanager.BuildConfig.PREV_ALIAS;
-import static com.benatt.passwordsmanager.utils.Constants.NAMED_PREV_KEY_ALIAS;
 
 import android.util.Log;
 
@@ -23,12 +22,14 @@ import java.util.List;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.inject.Named;
+import javax.inject.Inject;
 
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+@HiltViewModel
 public class SharedViewModel extends ViewModel {
     private static final String TAG = SharedViewModel.class.getSimpleName();
 
@@ -42,14 +43,12 @@ public class SharedViewModel extends ViewModel {
 
     private Disposable disposable;
     private final PasswordRepository passwordRepository;
-    private PublicKey prevPublicKey;
-    private PublicKey publicKey;
+    private final PublicKey publicKey;
 
+    @Inject
     public SharedViewModel(PasswordRepository passwordRepository,
-                           @Named(NAMED_PREV_KEY_ALIAS) PublicKey prevPublicKey,
                            PublicKey publicKey) {
         this.passwordRepository = passwordRepository;
-        this.prevPublicKey = prevPublicKey;
         this.publicKey = publicKey;
     }
 
@@ -63,9 +62,9 @@ public class SharedViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(passwordsList -> {
                     if (passwordsList.isEmpty())
-                        msgEmpty.setValue("No saved passwords.");
+                        msgEmpty.postValue("No saved passwords.");
                     else
-                        passwords.setValue(passwordsList);
+                        passwords.postValue(passwordsList);
                 }, throwable -> msgEmpty.setValue("An error occurred."));
     }
 
@@ -112,10 +111,10 @@ public class SharedViewModel extends ViewModel {
         for (Password password : list) {
             try {
                 String passwordStr = Decryptor.decryptPassword(password.getCipher(), null, PREV_ALIAS);
-                if (!passwordStr.equals(""))
+                if (passwordStr != null && !passwordStr.isEmpty()) {
                     password.setCipher(Encryptor.encrypt(publicKey, passwordStr));
-
-                passwords.add(password);
+                    passwords.add(password);
+                }
             } catch (Exception e) {
                 completeMsg.setValue(e.getMessage());
             } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
@@ -133,9 +132,7 @@ public class SharedViewModel extends ViewModel {
                             completeMsg.setValue(msg);
                             refreshList.setValue(true);
                         },
-                        throwable -> {
-                            completeMsg.setValue(throwable.getMessage());
-                        }
+                        throwable -> completeMsg.setValue(throwable.getMessage())
                 );
     }
 }

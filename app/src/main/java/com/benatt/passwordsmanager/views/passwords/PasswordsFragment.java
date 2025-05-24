@@ -10,9 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -24,50 +21,29 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.benatt.passwordsmanager.MainApp;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.FragmentPasswordsBinding;
 import com.benatt.passwordsmanager.utils.OnActivityResult;
-import com.benatt.passwordsmanager.utils.ViewModelFactory;
 import com.benatt.passwordsmanager.views.SharedViewModel;
 import com.benatt.passwordsmanager.views.passwords.adapter.PasswordsAdapter;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.Gson;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import javax.inject.Inject;
+import dagger.hilt.android.AndroidEntryPoint;
 
 /**
  * @author bernard
  */
+@AndroidEntryPoint
 public class PasswordsFragment extends Fragment implements OnItemClick {
-    private static final String TAG = PasswordsFragment.class.getSimpleName();
-    private static final String PASSWORD_POS = "position";
     private NavController controller;
 
-    private KeyguardManager keyguardManager;
-
-    private PasswordsViewModel passwordsViewModel;
     private SharedViewModel sharedViewModel;
-
-    @Inject
-    ViewModelFactory factory;
 
     private FragmentPasswordsBinding binding;
 
     private PasswordsAdapter adapter;
     private OnActivityResult onActivityResult;
-    private List<Password> passwords = new ArrayList<>();
     private Password password;
 
     @Override
@@ -81,13 +57,12 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        ((MainApp) getActivity().getApplicationContext()).getPasswordsComponent().inject(this);
         binding = FragmentPasswordsBinding.inflate(inflater, container, false);
 
         controller = NavHostFragment.findNavController(this);
 
-        passwordsViewModel = new ViewModelProvider(this, factory).get(PasswordsViewModel.class);
-        sharedViewModel = new ViewModelProvider(getActivity(), factory).get(SharedViewModel.class);
+        PasswordsViewModel passwordsViewModel = new ViewModelProvider(this).get(PasswordsViewModel.class);
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         sharedViewModel.msgEmpty.observe(getViewLifecycleOwner(), s -> {
             showMessage(s, binding.getRoot());
@@ -96,17 +71,16 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
             sharedViewModel.hideProgressBar();
         });
 
-        adapter = new PasswordsAdapter(this, getActivity());
-        binding.rvPasswordList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        adapter = new PasswordsAdapter(this, requireActivity());
+        binding.rvPasswordList.setLayoutManager(new LinearLayoutManager(requireActivity()));
         binding.rvPasswordList.setAdapter(adapter);
 
         sharedViewModel.passwords.observe(getViewLifecycleOwner(), passwords -> {
-            this.passwords = passwords;
             adapter.setPasswords(passwords);
             sharedViewModel.hideProgressBar();
             sharedViewModel.showBottomNav();
 
-            if (passwords.size() > 0 && binding.rvPasswordList.getVisibility() == View.GONE) {
+            if (!passwords.isEmpty() && binding.rvPasswordList.getVisibility() == View.GONE) {
                 binding.rvPasswordList.setVisibility(View.VISIBLE);
                 binding.llPlaceholder.setVisibility(View.GONE);
             }
@@ -126,10 +100,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     }
 
     private void showMessage(String s, View rootView) {
-        assert getActivity() != null;
-//        assert getActivity().getCurrentFocus() != null;
-        Snackbar.make(rootView, s, Snackbar.LENGTH_SHORT)
-                .show();
+        Snackbar.make(rootView, s, Snackbar.LENGTH_SHORT).show();
     }
 
     @Override
@@ -141,11 +112,11 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
     @Override
     public void startKeyguardActivity(OnActivityResult onActivityResult, int requestCode) {
         this.onActivityResult = onActivityResult;
-        KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager keyguardManager = (KeyguardManager) requireActivity().getSystemService(Context.KEYGUARD_SERVICE);
         if (keyguardManager.isKeyguardSecure()) {
             Intent intent =  keyguardManager.createConfirmDeviceCredentialIntent(
-                    getActivity().getString(R.string.auth_key_guard),
-                    getActivity().getString(R.string.auth_msg)
+                    requireActivity().getString(R.string.auth_key_guard),
+                    requireActivity().getString(R.string.auth_msg)
             );
             startActivityForResult(intent, requestCode);
         }
@@ -164,57 +135,5 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
                 controller.navigate(R.id.fragment_add_password, args);
             }
         }
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.option_menu, menu);
-
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.back_passwords) {
-
-            Gson gson = new Gson();
-
-            if (this.passwords.isEmpty()) {
-                this.sharedViewModel.getPasswords();
-            }
-
-            if (!this.passwords.isEmpty()) {
-                String jsonPasswordStr = gson.toJson(this.passwords);
-
-                this.passwordsViewModel.encryptPasswordData(jsonPasswordStr);
-                this.passwordsViewModel.encryptedString.observe(getViewLifecycleOwner(), cipher -> {
-                    SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
-                    try {
-                        String fileName = sp.format(new Date()) + ".txt";
-                        File dir = new File("backup");
-                        if (dir.exists()) {
-                            boolean isDirCreated = dir.mkdir();
-                        }
-
-                        FileOutputStream fos = getActivity().openFileOutput("backup" + System.lineSeparator() + fileName, Context.MODE_PRIVATE);
-                        OutputStreamWriter writer = new OutputStreamWriter(fos);
-
-                        writer.write(cipher);
-
-                        writer.flush();
-                        writer.close();
-
-                        File file = getActivity().getDir("backup", Context.MODE_PRIVATE);
-
-                        File fileItem = new File(file, fileName);
-
-//                        FileContent content = new FileContent("text/plain", fileItem);
-                    } catch (NullPointerException | IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

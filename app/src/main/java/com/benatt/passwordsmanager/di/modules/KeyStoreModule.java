@@ -20,28 +20,26 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.util.Calendar;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import javax.inject.Named;
-import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.hilt.InstallIn;
+import dagger.hilt.android.components.ViewModelComponent;
 
 /**
  * @author bernard
  */
 @Module
+@InstallIn(ViewModelComponent.class)
 public class KeyStoreModule {
     public static final String TAG = KeyStore.class.getSimpleName();
 
-    @Singleton
     @Provides
     public PublicKey providePublicKey() {
         return getPublicKey(ALIAS);
     }
 
-    @Singleton
     @Provides
     @Named(NAMED_PREV_KEY_ALIAS)
     public PublicKey providesPrevPublicKey() {
@@ -49,7 +47,7 @@ public class KeyStoreModule {
     }
 
     private PublicKey getPublicKey(String alias) {
-        PublicKey publicKey = null;
+        PublicKey publicKey;
         try {
             KeyStore keyStore = getKeyStore();
             if (keyStore != null) {
@@ -110,7 +108,7 @@ public class KeyStoreModule {
         } catch (KeyStoreException e) {
             Log.e(TAG, "getKeyStore: ", e);
         } catch (NoSuchAlgorithmException | IOException | CertificateException e) {
-            e.printStackTrace();
+            Log.e(TAG, "getKeyStore -> ", e);
         }
         return keyStore;
     }
