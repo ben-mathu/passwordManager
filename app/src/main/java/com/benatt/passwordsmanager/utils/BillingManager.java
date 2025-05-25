@@ -12,6 +12,7 @@ import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingFlowParams.ProductDetailsParams;
 import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.PendingPurchasesParams;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
@@ -26,14 +27,17 @@ public class BillingManager implements PurchasesUpdatedListener {
     public interface BillingCallback {
         void onPurchasesUpdated(BillingResult billingResult, List<Purchase> list);
     }
-    private final BillingCallback callback;
+    private BillingCallback callback;
     private final BillingClient billingClient;
 
-    public BillingManager(Context context, BillingCallback callback) {
-        this.callback = callback;
+    public BillingManager(Context context) {
+        PendingPurchasesParams params = PendingPurchasesParams.newBuilder()
+                .enableOneTimeProducts()
+                .build();
 
         billingClient = BillingClient.newBuilder(context)
                 .setListener(this)
+                .enablePendingPurchases(params)
                 .build();
 
         startConnection();
@@ -54,7 +58,9 @@ public class BillingManager implements PurchasesUpdatedListener {
         });
     }
 
-    public void launchBillingFlow(Activity activity) {
+    public void launchBillingFlow(Activity activity, BillingCallback callback) {
+        this.callback = callback;
+
         Product product = Product.newBuilder()
                 .setProductId("com.benatt.passwordsmanager.cryptcode_root_access.test1")
                 .setProductType(BillingClient.ProductType.INAPP)

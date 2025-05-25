@@ -115,6 +115,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Inject
     SharedPreferences preferences;
+
+    @Inject
+    BillingManager billingManager;
+
     private ProgressDialog progressDialog;
     private MenuItem signIn;
     private MenuItem signOut;
@@ -382,10 +386,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (item.getItemId() == R.id.sign_in) {
             requestSignIn();
         } else if (item.getItemId() == R.id.unlock_premium) {
-            BillingManager manager = new BillingManager(this, (billingResult, list) -> {
+            billingManager.launchBillingFlow(this, (billingResult, list) -> {
 
             });
-            manager.launchBillingFlow(this);
         }
         return super.onOptionsItemSelected(item);
     }
