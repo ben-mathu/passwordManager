@@ -43,12 +43,14 @@ android {
             buildConfigField "String", "ALIAS", "\"${localProperties["key_alias"] ?: ""}\""
             buildConfigField "String", "PREV_ALIAS", "\"${localProperties["prev_key_alias"] ?: ""}\""
             buildConfigField "String", "MIGRATING_VERSION", "\"${localProperties["migrating_version"] ?: ""}\""
+            buildConfigField "String", "CLIENT_ID", "\"${localProperties["CLIENT_ID"] ?: ""}\""
         }
 
         debug {
             buildConfigField "String", "ALIAS", "\"${localProperties["key_alias"] ?: ""}\""
             buildConfigField "String", "PREV_ALIAS", "\"${localProperties["prev_key_alias"] ?: ""}\""
             buildConfigField "String", "MIGRATING_VERSION", "\"${localProperties["migrating_version"] ?: ""}\""
+            buildConfigField "String", "CLIENT_ID", "\"${localProperties["CLIENT_ID"] ?: ""}\""
         }
     }
 
@@ -105,9 +107,9 @@ dependencies {
     implementation(libs.google.play.services.auth)
 
     implementation(libs.google.api.services.drive)
-    implementation "androidx.credentials:credentials:1.3.0"
-    implementation "androidx.credentials:credentials-play-services-auth:1.3.0"
-    implementation "com.google.android.libraries.identity.googleid:googleid:1.1.1"
+    implementation(libs.credentials)
+    implementation(libs.credentials.auth)
+    implementation(libs.googleId)
 
     implementation(libs.google.api.client.android)
 
