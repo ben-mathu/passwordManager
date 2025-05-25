@@ -38,6 +38,10 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
     <item
+        android:id="@+id/unlock_premium"
+        android:title="@string/unlock_premium" />
+
+    <item
         android:id="@+id/sign_out"
         android:title="@string/sign_out"
         android:visible="false"/>

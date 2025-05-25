@@ -49,6 +49,7 @@ import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
 import com.benatt.passwordsmanager.exceptions.Exception;
+import com.benatt.passwordsmanager.utils.BillingManager;
 import com.benatt.passwordsmanager.utils.Decryptor;
 import com.benatt.passwordsmanager.utils.DriveServiceHelper;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -114,6 +115,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Inject
     SharedPreferences preferences;
+
+    @Inject
+    BillingManager billingManager;
+
     private ProgressDialog progressDialog;
     private MenuItem signIn;
     private MenuItem signOut;
@@ -380,6 +385,10 @@ public class MainActivity extends AppCompatActivity {
             signOutUser();
         } else if (item.getItemId() == R.id.sign_in) {
             requestSignIn();
+        } else if (item.getItemId() == R.id.unlock_premium) {
+            billingManager.launchBillingFlow(this, (billingResult, list) -> {
+
+            });
         }
         return super.onOptionsItemSelected(item);
     }
