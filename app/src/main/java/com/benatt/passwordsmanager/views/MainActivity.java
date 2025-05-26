@@ -39,7 +39,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission;
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
@@ -78,7 +77,6 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -102,9 +100,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int REQUEST_CODE_GOOGLE_SIGN_IN = 3001;
-    private static final int PIN_REQUEST_CODE = 1102;
-    private static final org.apache.commons.logging.Log log = LogFactory.getLog(MainActivity.class);
 
     private MainViewModel mainViewModel;
     private SharedViewModel sharedViewModel;
@@ -126,8 +121,6 @@ public class MainActivity extends AppCompatActivity {
     BillingManager billingManager;
 
     private ProgressDialog progressDialog;
-    private MenuItem signIn;
-    private MenuItem signOut;
     private GoogleIdTokenCredential credential;
 
     @Override
@@ -153,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
 
             NavigationUI.setupWithNavController(bottomNav, navController);
 
-            bottomNav.setOnNavigationItemSelectedListener(item -> {
+            bottomNav.setOnItemSelectedListener(item -> {
                 if (item.getItemId() == R.id.add_password) {
                     navController.navigate(R.id.action_passwords_to_add_password);
                 }
@@ -190,11 +183,6 @@ public class MainActivity extends AppCompatActivity {
                         .putBoolean(PASSWORDS_MIGRATED, true)
                         .apply());
 
-        sharedViewModel.isLogin.observe(this, isLoggedIn -> {
-            if (isLoggedIn)
-                requestSignIn(null);
-        });
-
         sharedViewModel.showLoader.observe(this, showLoader -> {
             if (showLoader)
                 binding.rlProgressBar.setVisibility(View.VISIBLE);
@@ -226,10 +214,21 @@ public class MainActivity extends AppCompatActivity {
                         getString(R.string.auth_key_guard),
                         getString(R.string.auth_msg)
                 );
-                startActivityForResult(intent, PIN_REQUEST_CODE);
+                keyGuardLauncher.launch(intent);
             }
         }
     }
+
+    private final ActivityResultLauncher<Intent> keyGuardLauncher =
+            registerForActivityResult(new StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    preferences.edit()
+                            .putBoolean(SIGNED_IN, true)
+                            .apply();
+                } else {
+                    finish();
+                }
+            });
 
     private void certificateManenoz(Drive googleDriveService) throws Exception, java.lang.Exception {
 
@@ -317,9 +316,6 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.option_menu, menu);
 
-        signOut = menu.findItem(R.id.sign_out);
-        signIn = menu.findItem(R.id.sign_in);
-
         MenuItem search = menu.findItem(R.id.search);
         SearchView searchview = (SearchView) search.getActionView();
         if (searchview != null) {
@@ -335,13 +331,6 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
             });
-        }
-
-        boolean googleSignedIn = preferences.getBoolean(SIGNED_IN_WITH_GOOGLE, false);
-        if (googleSignedIn) {
-            signOut.setVisible(true);
-        } else {
-            signIn.setVisible(true);
         }
 
         return super.onCreateOptionsMenu(menu);
@@ -388,10 +377,6 @@ public class MainActivity extends AppCompatActivity {
         } else if (item.getItemId() == R.id.scan_qr) {
             scanQRCode();
             return true;
-        } else if (item.getItemId() == R.id.sign_out) {
-            signOutUser();
-        } else if (item.getItemId() == R.id.sign_in) {
-            requestSignIn(null);
         } else if (item.getItemId() == R.id.unlock_premium) {
             billingManager.launchBillingFlow(this, (billingResult, list) -> {
 
@@ -413,36 +398,29 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent("com.google.zxing.client.android.SCAN");
         intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
 
-        startActivityForResult(intent, 1005);
+        scanQrCodeLauncher.launch(intent);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1005 && resultCode == RESULT_OK && data != null) {
-            String jsonPasswords = data.getStringExtra("SCAN_RESULT");
-            List<Password> pList = gson.fromJson(jsonPasswords, new TypeToken<List<Password>>() {
-            }.getType());
+    private final ActivityResultLauncher<Intent> scanQrCodeLauncher =
+            registerForActivityResult(new StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String jsonPasswords = result.getData().getStringExtra("SCAN_RESULT");
+                    List<Password> pList = gson.fromJson(jsonPasswords, new TypeToken<List<Password>>() {
+                    }.getType());
 
-            mainViewModel.savePasswords(pList);
-        } else if (requestCode == PIN_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                String nounce = Arrays.toString(Base64.encodeBase64(new GenerateRandomString(16).nextString().getBytes(Charset.defaultCharset())));
-                GetGoogleIdOption getGoogleIdOption = new GetGoogleIdOption.Builder()
-                        .setServerClientId(BuildConfig.CLIENT_ID)
-                        .setFilterByAuthorizedAccounts(false)
-                        .setAutoSelectEnabled(true)
-                        .setNonce(nounce)
-                        .build();
-                requestSignIn(getGoogleIdOption);
+                    mainViewModel.savePasswords(pList);
+                }
+            });
 
-                preferences.edit()
-                        .putBoolean(SIGNED_IN, true)
-                        .apply();
-            } else {
-                finish();
-            }
-        }
+    private void signInUser() {
+        String nounce = Arrays.toString(Base64.encodeBase64(new GenerateRandomString(16).nextString().getBytes(Charset.defaultCharset())));
+        GetGoogleIdOption getGoogleIdOption = new GetGoogleIdOption.Builder()
+                .setServerClientId(BuildConfig.CLIENT_ID)
+                .setFilterByAuthorizedAccounts(false)
+                .setAutoSelectEnabled(true)
+                .setNonce(nounce)
+                .build();
+        requestSignIn(getGoogleIdOption);
     }
 
     private void generateQRCode() throws WriterException {
@@ -503,25 +481,26 @@ public class MainActivity extends AppCompatActivity {
         retrieveFileLauncher.launch(Intent.createChooser(intent, "Select a file"));
     }
 
-    private ActivityResultLauncher<Intent> retrieveFileLauncher =
+    private final ActivityResultLauncher<Intent> retrieveFileLauncher =
             registerForActivityResult(new StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Log.d(TAG, "Successfully retrieved file -> ");
                     Uri contentUri = result.getData().getData();
                     if (contentUri != null) {
                         new Thread(() -> {
                             try (InputStream inputStream = getContentResolver().openInputStream(contentUri)) {
+                                if (inputStream != null) {
+                                    StringBuilder sb = new StringBuilder();
+                                    byte[] buffer = new byte[2046];
+                                    long read;
+                                    while ((read = inputStream.read(buffer)) != -1) {
+                                        sb.append(new String(buffer, 0, (int) read));
+                                    }
 
-                                StringBuilder sb = new StringBuilder();
-                                byte[] buffer = new byte[2046];
-                                long read;
-                                while ((read = inputStream.read(buffer)) != -1) {
-                                    sb.append(new String(buffer, 0, (int) read));
+                                    List<Password> passwordsList = gson.fromJson(sb.toString(), new TypeToken<List<Password>>() {
+                                    }.getType());
+                                    mainViewModel.savedAndDecrypt(passwordsList);
                                 }
-
-                                List<Password> passwordsList = gson.fromJson(sb.toString(), new TypeToken<List<Password>>() {
-                                }.getType());
-                                mainViewModel.savedAndDecrypt(passwordsList);
                                 new Handler(getMainLooper())
                                         .post(progressDialog::dismiss);
                             } catch (IOException e) {
@@ -563,9 +542,6 @@ public class MainActivity extends AppCompatActivity {
                         .putBoolean(SIGNED_IN_WITH_GOOGLE, true)
                         .apply();
                 navController.navigate(R.id.fragment_passwords);
-
-                signIn.setVisible(false);
-                signOut.setVisible(true);
                 Log.d(TAG, "onResult -> Successfully authenticated");
 
                 if (checkSelfPermission(Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
