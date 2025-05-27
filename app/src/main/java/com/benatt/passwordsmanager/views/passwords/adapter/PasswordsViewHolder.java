@@ -7,6 +7,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -19,11 +21,15 @@ import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.PasswordItemBinding;
 import com.benatt.passwordsmanager.exceptions.Exception;
 import com.benatt.passwordsmanager.views.passwords.OnItemClick;
+import com.google.android.material.button.MaterialButton;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * @author bernard
  */
-public class PasswordsViewHolder extends RecyclerView.ViewHolder{
+public class PasswordsViewHolder extends RecyclerView.ViewHolder {
     public static final int REQUEST_CODE = 1101;
     public static final int START_PASSWORD_DETAIL_SCREEN = 1102;
     public static final String TAG = PasswordsViewHolder.class.getSimpleName();
@@ -33,6 +39,8 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     private final Activity context;
 
     private boolean isDecrypted;
+    private MaterialButton btnDecrypt;
+    Timer timer = new Timer();
 
     public PasswordsViewHolder(PasswordItemBinding binding, Activity context) {
         super(binding.getRoot());
@@ -42,21 +50,17 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     }
 
     public void bind(Password password, OnItemClick onItemClick) {
+        btnDecrypt = (MaterialButton) binding.btnDecrypt;
 
         binding.setPasswordItemViewModel(passwordItemViewModel);
-        binding.btnDecrypt.setText(R.string.show_password);
         binding.btnDecrypt.setOnClickListener(view -> {
             if (!isDecrypted) {
                 onItemClick.startKeyguardActivity(() -> {
                     try {
                         String cipher = decryptPassword(password.getCipher(), null, BuildConfig.ALIAS);
-                        binding.passwordValue.setText(cipher);
-                        binding.btnDecrypt.setText(R.string.hide_password);
-                        binding.lockPassword.setImageDrawable(
-                                ContextCompat.getDrawable(context, R.drawable.ic_unlocked_password)
-                        );
-                        binding.lockPassword.setColorFilter(
-                                ContextCompat.getColor(context, R.color.colorAccent));
+                        binding.passwordValue.setText(String.format("Password: %s", cipher));
+                        btnDecrypt.setIcon(
+                                ContextCompat.getDrawable(context, R.drawable.ic_action_encrypted_off));
                         isDecrypted = true;
 
                         startTimer();
@@ -66,10 +70,8 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                 }, REQUEST_CODE);
             } else {
                 binding.passwordValue.setText(context.getString(R.string.password_encrypted));
-                binding.btnDecrypt.setText(context.getString(R.string.show_password));
-                binding.lockPassword.setImageDrawable(
-                        ContextCompat.getDrawable(context, R.drawable.ic_locked_password)
-                );
+                btnDecrypt.setIcon(
+                        ContextCompat.getDrawable(context, R.drawable.ic_action_encrypted_on));
                 isDecrypted = false;
             }
         });
@@ -83,6 +85,18 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
                         .newPlainText("password",
                                 decryptPassword(password.getCipher(), null, BuildConfig.ALIAS));
                 cm.setPrimaryClip(clip);
+
+                MaterialButton btnCopy = (MaterialButton) binding.btnCopy;
+                btnCopy.setIcon(
+                        ContextCompat.getDrawable(context, R.drawable.ic_action_check));
+
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        context.runOnUiThread(() -> btnCopy.setIcon(
+                                ContextCompat.getDrawable(context, R.drawable.ic_action_copy)));
+                    }
+                }, 3000);
                 Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 Log.e(TAG, "bind: Error", e);
@@ -95,21 +109,16 @@ public class PasswordsViewHolder extends RecyclerView.ViewHolder{
     }
 
     private void startTimer() {
-        new CountDownTimer(60000, 1000) {
+        timer.schedule(new TimerTask() {
             @Override
-            public void onTick(long millisUntilFinished) {
-                // onTick: Intentionally left blank
+            public void run() {
+                context.runOnUiThread(() -> {
+                    binding.passwordValue.setText(context.getString(R.string.password_encrypted));
+                    btnDecrypt.setIcon(
+                            ContextCompat.getDrawable(context, R.drawable.ic_action_encrypted_on));
+                    isDecrypted = false;
+                });
             }
-
-            @Override
-            public void onFinish() {
-                binding.passwordValue.setText(context.getString(R.string.password_encrypted));
-                binding.btnDecrypt.setText(context.getString(R.string.show_password));
-                binding.lockPassword.setImageDrawable(
-                        ContextCompat.getDrawable(context, R.drawable.ic_locked_password)
-                );
-                isDecrypted = false;
-            }
-        }.start();
+        }, 60000);
     }
 }
