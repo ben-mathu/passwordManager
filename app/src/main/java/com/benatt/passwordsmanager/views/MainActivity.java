@@ -2,95 +2,61 @@ package com.benatt.passwordsmanager.views;
 
 import static com.benatt.passwordsmanager.BuildConfig.ALIAS;
 import static com.benatt.passwordsmanager.BuildConfig.MIGRATING_VERSION;
-import static com.benatt.passwordsmanager.utils.CertUtil.exportPrivateKey;
-import static com.benatt.passwordsmanager.utils.Constants.BACKUP_FOLDER;
-import static com.benatt.passwordsmanager.utils.Constants.ID_TOKEN;
+import static com.benatt.passwordsmanager.utils.Constants.APP_PURCHASED;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
-import static com.benatt.passwordsmanager.utils.Constants.PRIVATE_KEY_FILE_NAME;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN;
-import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN_WITH_GOOGLE;
 
-import android.Manifest;
 import android.app.KeyguardManager;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts.RequestPermission;
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.credentials.CredentialManager;
-import androidx.credentials.CredentialManagerCallback;
-import androidx.credentials.GetCredentialRequest;
-import androidx.credentials.GetCredentialResponse;
-import androidx.credentials.exceptions.GetCredentialException;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
-import com.benardmathu.tokengeneration.GenerateRandomString;
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingResult;
 import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
 import com.benatt.passwordsmanager.exceptions.Exception;
-import com.benatt.passwordsmanager.utils.BillingManager;
 import com.benatt.passwordsmanager.utils.Decryptor;
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+import com.benatt.passwordsmanager.utils.billing.BillingManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.model.FileList;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
-
-import org.apache.commons.codec.binary.Base64;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Executor;
 import java.util.Objects;
 
 import javax.inject.Inject;
@@ -120,9 +86,6 @@ public class MainActivity extends AppCompatActivity {
     @Inject
     BillingManager billingManager;
 
-    private ProgressDialog progressDialog;
-    private GoogleIdTokenCredential credential;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,8 +95,8 @@ public class MainActivity extends AppCompatActivity {
         sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
         mainViewModel.message.observe(this, msg -> {
-            if (binding.rlProgressBar.getVisibility() == View.VISIBLE)
-                binding.rlProgressBar.setVisibility(View.GONE);
+            if (binding.progressBar.getVisibility() == View.VISIBLE)
+                hideProgressBar();
 
             showMessage(msg);
         });
@@ -156,10 +119,13 @@ public class MainActivity extends AppCompatActivity {
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 if (destination.getId() == R.id.fragment_passwords) {
                     bottomNav.setVisibility(View.VISIBLE);
-                } else if (destination.getId() == R.id.fragment_auth) {
+                    mainViewModel.setNotHome(true);
+                } else if (destination.getId() == R.id.fragment_home) {
                     bottomNav.setVisibility(View.GONE);
+                    mainViewModel.setNotHome(false);
                 } else {
                     bottomNav.setVisibility(View.GONE);
+                    mainViewModel.setNotHome(true);
                 }
             });
         }
@@ -185,9 +151,8 @@ public class MainActivity extends AppCompatActivity {
 
         sharedViewModel.showLoader.observe(this, showLoader -> {
             if (showLoader)
-                binding.rlProgressBar.setVisibility(View.VISIBLE);
-            else
-                binding.rlProgressBar.setVisibility(View.GONE);
+                showProgressBar();
+            else hideProgressBar();
         });
 
         sharedViewModel.bottomNavLiveData.observe(this, showBottomNav ->
@@ -217,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
                 keyGuardLauncher.launch(intent);
             }
         }
+
+        billingManager.checkPayment(this::handleBillingResult);
     }
 
     private final ActivityResultLauncher<Intent> keyGuardLauncher =
@@ -229,68 +196,6 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                 }
             });
-
-    private void certificateManenoz(Drive googleDriveService) throws Exception, java.lang.Exception {
-
-        // Get the backup folder id
-        FileList driverList;
-        com.google.api.services.drive.model.File backupFolder = null;
-        com.google.api.services.drive.model.File privateKeyFile = null;
-        String query = "mimeType = 'application/vnd.google-apps.folder'" +
-                " and 'root' in parents and trashed = false";
-        try {
-            driverList = googleDriveService.files().list().setQ(query)
-                    .setFields("files(id,name)").execute();
-
-            List<com.google.api.services.drive.model.File> fileList = driverList.getFiles();
-
-            for (com.google.api.services.drive.model.File file : fileList) {
-                if (BACKUP_FOLDER.equals(file.getName())) {
-                    backupFolder = file;
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            Log.e(TAG, "certificateManenoz -> Error retrieving cert", e);
-        }
-
-        // Create the backup folder if it does not exist
-        com.google.api.services.drive.model.File fileDirMetadata = new com.google.api.services.drive.model.File();
-        fileDirMetadata.setName(BACKUP_FOLDER);
-        fileDirMetadata.setMimeType("application/vnd.google-apps.folder");
-        if (backupFolder == null)
-            backupFolder = createFolder(googleDriveService, fileDirMetadata);
-
-        // Get the security certificate from Google drive
-        query = "mimeType = 'text/plain'" +
-                " and '" + backupFolder.getId() + "' in parents and trashed = false";
-        FileList backupFolderList = googleDriveService.files().list().setQ(query)
-                .setFields("files(id,name)").execute();
-
-        for (com.google.api.services.drive.model.File item : backupFolderList.getFiles()) {
-            if (PRIVATE_KEY_FILE_NAME.equals(item.getName())) {
-                privateKeyFile = item;
-                break;
-            }
-        }
-
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-        if (privateKeyFile == null && keyStore.containsAlias(ALIAS))
-            exportPrivateKey(keyStore, backupFolder, googleDriveService, this, preferences);
-    }
-
-    private com.google.api.services.drive.model.File createFolder(Drive googleDriveService,
-                                                                  com.google.api.services.drive.model.File fileDirMetadata) {
-        try {
-            return googleDriveService.files().create(fileDirMetadata)
-                    .setFields("id")
-                    .execute();
-        } catch (IOException e) {
-            Log.e(TAG, "createFolder -> Error creating folder", e);
-        }
-        return fileDirMetadata;
-    }
 
     private void startAlertActivity() {
         AlertDialog.Builder builder
@@ -333,6 +238,9 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        MenuItem home = menu.findItem(R.id.home);
+        mainViewModel.isNotHome().observe(this, home::setVisible);
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -367,112 +275,21 @@ public class MainActivity extends AppCompatActivity {
         } else if (item.getItemId() == R.id.refresh_password_list) {
             sharedViewModel.refreshList();
             return true;
-        } else if (item.getItemId() == R.id.generate_qr_code) {
-            try {
-                generateQRCode();
-            } catch (WriterException e) {
-                Log.e(TAG, "onOptionsItemSelected -> Error generating QR code", e);
-            }
+        } else if (item.getItemId() == R.id.home) {
+            navController.navigate(R.id.fragment_home);
             return true;
-        } else if (item.getItemId() == R.id.scan_qr) {
-            scanQRCode();
-            return true;
-        } else if (item.getItemId() == R.id.unlock_premium) {
-            billingManager.launchBillingFlow(this, (billingResult, list) -> {
-
-            });
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void signOutUser() {
-        preferences.edit()
-                .putBoolean(SIGNED_IN, false)
-                .putBoolean(SIGNED_IN_WITH_GOOGLE, false)
-                .apply();
-
-        if (navController != null) navController.navigate(R.id.fragment_auth);
-    }
-
-    private void scanQRCode() {
-        Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-        intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-
-        scanQrCodeLauncher.launch(intent);
-    }
-
-    private final ActivityResultLauncher<Intent> scanQrCodeLauncher =
-            registerForActivityResult(new StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    String jsonPasswords = result.getData().getStringExtra("SCAN_RESULT");
-                    List<Password> pList = gson.fromJson(jsonPasswords, new TypeToken<List<Password>>() {
-                    }.getType());
-
-                    mainViewModel.savePasswords(pList);
-                }
-            });
-
-    private void signInUser() {
-        String nounce = Arrays.toString(Base64.encodeBase64(new GenerateRandomString(16).nextString().getBytes(Charset.defaultCharset())));
-        GetGoogleIdOption getGoogleIdOption = new GetGoogleIdOption.Builder()
-                .setServerClientId(BuildConfig.CLIENT_ID)
-                .setFilterByAuthorizedAccounts(false)
-                .setAutoSelectEnabled(true)
-                .setNonce(nounce)
-                .build();
-        requestSignIn(getGoogleIdOption);
-    }
-
-    private void generateQRCode() throws WriterException {
-        String passwordsJson = gson.toJson(passwordList);
-
-        QRCodeWriter codeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = codeWriter.encode(passwordsJson, BarcodeFormat.QR_CODE, 300, 300);
-        int width = bitMatrix.getWidth();
-        int height = bitMatrix.getHeight();
-        Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
-            }
+    private void handleBillingResult(BillingResult billingResult) {
+        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+            preferences.edit().putBoolean(APP_PURCHASED, true).apply();
         }
-        ImageView imageView = new ImageView(this);
-        imageView.setImageBitmap(bmp);
-
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
-        params.width = 300;
-        params.height = 300;
-        params.horizontalMargin = 20;
-        params.verticalMargin = 20;
-
-        WindowManager.LayoutParams textParams = new WindowManager.LayoutParams();
-        textParams.horizontalMargin = 20;
-        textParams.verticalMargin = 20;
-
-        imageView.setLayoutParams(params);
-
-        TextView text = new TextView(this);
-        text.setPadding(50, 0, 0, 50);
-        text.setText(R.string.scan_the_qr_code_to_migrate_passwords);
-        text.setTextColor(ContextCompat.getColor(this, R.color.white));
-        text.setTextSize(21);
-        text.setLayoutParams(textParams);
-
-        LinearLayout linearLayout = new LinearLayout(this);
-        linearLayout.setOrientation(LinearLayout.VERTICAL);
-        linearLayout.setGravity(Gravity.CENTER);
-        linearLayout.addView(text);
-        linearLayout.addView(imageView);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this,
-                android.R.style.Theme_Material_Dialog_Alert);
-        builder.setView(linearLayout);
-        builder.setPositiveButton("Close", (dialogInterface, i) ->
-                dialogInterface.dismiss()).show();
     }
 
     public void restorePasswords() {
-        showProgressBar("Restoring Passwords");
+        showProgressBar();
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("text/plain");
@@ -502,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
                                     mainViewModel.savedAndDecrypt(passwordsList);
                                 }
                                 new Handler(getMainLooper())
-                                        .post(progressDialog::dismiss);
+                                        .post(this::hideProgressBar);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
@@ -516,52 +333,8 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    public void requestSignIn(GetGoogleIdOption getGoogleIdOption) {
-        CredentialManager credentialManager = CredentialManager.create(this);
-        GetCredentialRequest request;
-        if (getGoogleIdOption == null) {
-            String nounce = Arrays.toString(Base64.encodeBase64(new GenerateRandomString(16).nextString().getBytes(Charset.defaultCharset())));
-            GetSignInWithGoogleOption getSignInWithGoogleOption = new GetSignInWithGoogleOption.Builder(BuildConfig.CLIENT_ID)
-                    .setNonce(nounce)
-                    .build();
-            request = new GetCredentialRequest.Builder()
-                    .addCredentialOption(getSignInWithGoogleOption)
-                    .build();
-        } else {
-            request = new GetCredentialRequest.Builder()
-                    .addCredentialOption(getGoogleIdOption)
-                    .build();
-        }
-        Executor executor = ContextCompat.getMainExecutor(this);
-        credentialManager.getCredentialAsync(this, request, null, executor, new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
-            @Override
-            public void onResult(GetCredentialResponse response) {
-                credential = GoogleIdTokenCredential.createFrom(response.getCredential().getData());
-                preferences.edit()
-                        .putString(ID_TOKEN, credential.getIdToken())
-                        .putBoolean(SIGNED_IN_WITH_GOOGLE, true)
-                        .apply();
-                navController.navigate(R.id.fragment_passwords);
-                Log.d(TAG, "onResult -> Successfully authenticated");
-
-                if (checkSelfPermission(Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissionLauncher.launch(Manifest.permission.GET_ACCOUNTS);
-                }
-            }
-
-            @Override
-            public void onError(@NonNull GetCredentialException e) {
-                Log.e(TAG, "onError -> Error authenticating", e);
-            }
-        });
-    }
-
-    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new RequestPermission(), isGranted -> {
-        if (isGranted) Log.d(TAG, "onResult -> Thank you");
-    });
-
     private void createBackup() {
-        showProgressBar("Uploading to Google drive");
+        showProgressBar();
         SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
         String fileName = sp.format(new Date()) + ".txt";
         new Thread(() -> {
@@ -603,18 +376,15 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Log.e(TAG, "Could not upload file -> error");
                 }
-                progressDialog.dismiss();
+                hideProgressBar();
             });
 
-    public void showProgressBar(String message) {
-        // Show a progress loader
-        if (!this.isDestroyed()) {
-            progressDialog = new ProgressDialog(this);
+    public void showProgressBar() {
+        binding.progressBar.setVisibility(View.VISIBLE);
+    }
 
-            progressDialog.setTitle(message);
-            progressDialog.setMessage("Please wait...");
-            progressDialog.show();
-        }
+    private void hideProgressBar() {
+        binding.progressBar.setVisibility(View.GONE);
     }
 
     @Override

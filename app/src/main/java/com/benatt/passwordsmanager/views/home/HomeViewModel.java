@@ -1,4 +1,4 @@
-package com.benatt.passwordsmanager.views.auth;
+package com.benatt.passwordsmanager.views.home;
 
 import androidx.lifecycle.ViewModel;
 
@@ -10,7 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
  * @author bernard
  */
 @HiltViewModel
-public class AuthViewModel extends ViewModel {
+public class HomeViewModel extends ViewModel {
     @Inject
-    public AuthViewModel() {}
+    public HomeViewModel() {}
 }

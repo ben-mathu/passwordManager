@@ -1,4 +1,4 @@
-package com.benatt.passwordsmanager.views.auth;
+package com.benatt.passwordsmanager.views.home;
 
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN_WITH_GOOGLE;
 
@@ -21,7 +21,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.benatt.passwordsmanager.R;
-import com.benatt.passwordsmanager.databinding.FragmentAuthBinding;
+import com.benatt.passwordsmanager.databinding.FragmentHomeBinding;
 import com.benatt.passwordsmanager.views.SharedViewModel;
 
 import javax.inject.Inject;
@@ -32,13 +32,23 @@ import dagger.hilt.android.AndroidEntryPoint;
  * @author bernard
  */
 @AndroidEntryPoint
-public class AuthFragment extends Fragment {
+public class HomeFragment extends Fragment {
 
     private SharedViewModel sharedViewModel;
     private NavController controller;
 
     @Inject
     SharedPreferences preferences;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+        FragmentHomeBinding binding = FragmentHomeBinding.inflate(inflater, container, false);
+
+        controller = NavHostFragment.findNavController(this);
+        return binding.getRoot();
+    }
 
     @Override
     public void onStart() {
@@ -68,19 +78,5 @@ public class AuthFragment extends Fragment {
             requireActivity().startActivity(intent);
         }));
         builder.show();
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
-        FragmentAuthBinding binding = FragmentAuthBinding.inflate(inflater, container, false);
-
-        controller = NavHostFragment.findNavController(this);
-
-        binding.googleSignIn.setOnClickListener(view -> sharedViewModel.isLogin.setValue(true));
-
-        binding.tvSkip.setOnClickListener(view -> controller.navigate(R.id.fragment_passwords));
-        return binding.getRoot();
     }
 }

@@ -36,6 +36,7 @@ public class MainViewModel extends ViewModel {
 
     public MutableLiveData<String> message = new MutableLiveData<>();
     public MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isNotHome = new MutableLiveData<>(false);
 
     private Disposable disposable;
     private final CompositeDisposable compositeDisposable;
@@ -99,5 +100,13 @@ public class MainViewModel extends ViewModel {
                 .subscribe(msg -> Log.d(TAG, "savePasswords: " + msg), throwable ->
                         Log.e(TAG, "savePasswords: Error" + throwable.getLocalizedMessage(), throwable)
                 );
+    }
+
+    public MutableLiveData<Boolean> isNotHome() {
+        return isNotHome;
+    }
+
+    public void setNotHome(boolean isHome) {
+        this.isNotHome.postValue(isHome);
     }
 }

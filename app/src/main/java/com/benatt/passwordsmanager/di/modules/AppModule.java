@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
 
-import com.benatt.passwordsmanager.utils.BillingManager;
+import com.benatt.passwordsmanager.utils.billing.BillingManager;
 
 import dagger.Module;
 import dagger.Provides;

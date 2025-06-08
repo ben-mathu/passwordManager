@@ -3,15 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/generate_qr_code"
-        android:title="@string/generate_qr_code"
-        android:icon="@drawable/ic_action_qr_code"
+        android:id="@+id/home"
+        android:title="@string/home"
+        android:icon="@drawable/ic_action_home"
         app:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/scan_qr"
-        android:title="@string/scan_qr"
-        android:icon="@drawable/ic_action_qr_scan"/>
 
     <item
         android:id="@+id/back_passwords"
@@ -36,8 +31,4 @@
         android:icon="@drawable/ic_action_search"
         app:showAsAction="collapseActionView|always"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
-
-    <item
-        android:id="@+id/unlock_premium"
-        android:title="@string/unlock_premium" />
 </menu>
