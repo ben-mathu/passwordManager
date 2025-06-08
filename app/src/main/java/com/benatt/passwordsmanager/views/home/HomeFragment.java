@@ -1,17 +1,25 @@
 package com.benatt.passwordsmanager.views.home;
 
+import static com.benatt.passwordsmanager.utils.Constants.APP_PURCHASED;
+import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN_WITH_GOOGLE;
 
+import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -20,9 +28,17 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
+import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.FragmentHomeBinding;
 import com.benatt.passwordsmanager.views.SharedViewModel;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -32,21 +48,45 @@ import dagger.hilt.android.AndroidEntryPoint;
  * @author bernard
  */
 @AndroidEntryPoint
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements View.OnClickListener {
+    private static final String TAG = HomeFragment.class.getSimpleName();
 
-    private SharedViewModel sharedViewModel;
     private NavController controller;
+    private SharedViewModel sharedViewModel;
 
     @Inject
     SharedPreferences preferences;
+    private boolean isPaid;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        isPaid = preferences.getBoolean(APP_PURCHASED, false);
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
         FragmentHomeBinding binding = FragmentHomeBinding.inflate(inflater, container, false);
+        HomeViewModel viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         controller = NavHostFragment.findNavController(this);
+
+        viewModel.getPasswordsCount();
+
+        viewModel.countLiveData.observe(getViewLifecycleOwner(), count -> {
+            String format = "%d";
+            if (!isPaid) format = "%d/%d";
+            binding.passwordCountTv.setText(String.format(format, count, PASSWORD_LIMIT));
+        });
+
+        binding.tvVersion.setText(String.format("Version %s", BuildConfig.VERSION_NAME));
+        binding.btnShowPassword.setOnClickListener(this);
+        binding.btnBackup.setOnClickListener(this);
+        binding.btnRestore.setOnClickListener(this);
+        binding.btnAbout.setOnClickListener(this);
         return binding.getRoot();
     }
 
@@ -58,11 +98,7 @@ public class HomeFragment extends Fragment {
         KeyguardManager keyguardManager = (KeyguardManager) requireActivity().getSystemService(Context.KEYGUARD_SERVICE);
         if (!keyguardManager.isDeviceSecure()) {
             showDialog();
-            return;
         }
-
-        boolean isLoggedIn = preferences.getBoolean(SIGNED_IN_WITH_GOOGLE, false);
-        if (isLoggedIn) controller.navigate(R.id.action_authentication_to_password_list);
     }
 
     private void showDialog() {
@@ -79,4 +115,39 @@ public class HomeFragment extends Fragment {
         }));
         builder.show();
     }
+
+    @Override
+    public void onClick(View view) {
+        if (view.getId() == R.id.btn_show_password) {
+            controller.navigate(R.id.action_homeFragment_to_passwordFragment);
+        } else if (view.getId() == R.id.btn_backup) {
+            sharedViewModel.createBackup(requireActivity(), Collections.emptyList());
+        } else if (view.getId() == R.id.btn_restore) {
+            restorePasswords();
+        } else if (view.getId() == R.id.btn_about) {
+            controller.navigate(R.id.action_homeFragment_to_aboutFragment);
+        } else {
+            throw new IllegalStateException("Unexpected value: " + view.getId());
+        }
+    }
+
+    public void restorePasswords() {
+        sharedViewModel.showLoader.postValue(true);
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/plain");
+
+        retrieveFileLauncher.launch(Intent.createChooser(intent, "Select a file"));
+    }
+
+    private final ActivityResultLauncher<Intent> retrieveFileLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Log.d(TAG, "Successfully retrieved file -> ");
+                    Uri contentUri = result.getData().getData();
+                    if (contentUri != null) {
+                        sharedViewModel.restorePasswords(requireActivity(), contentUri);
+                    }
+                } else Log.e(TAG, "Could not retrieve file -> ");
+            });
 }

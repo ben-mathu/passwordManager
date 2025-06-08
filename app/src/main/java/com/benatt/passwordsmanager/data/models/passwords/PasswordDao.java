@@ -12,6 +12,7 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /**
  * @author bernard
@@ -25,6 +26,9 @@ public interface PasswordDao {
     Observable<List<Password>> getAll();
 
     @Query("SELECT * FROM passwords")
+    List<Password> getAllPasswords();
+
+    @Query("SELECT * FROM passwords")
     List<Password> getAllForMigration();
 
     @Delete
@@ -32,4 +36,7 @@ public interface PasswordDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void saveAll(List<Password> passwords);
+
+    @Query("select count(*) from passwords")
+    Single<Integer> count();
 }

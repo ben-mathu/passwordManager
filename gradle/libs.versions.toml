@@ -1,5 +1,6 @@
 [versions]
 androidGradlePlugin = "8.10.0"
+flexbox = "3.0.0"
 kotlinPlugin = "1.9.0"
 firebasePlugin = "2.9.6"
 googleServicesPlugin = "4.3.15"
@@ -21,8 +22,6 @@ rxAndroid = "2.1.1"
 rxJava = "2.2.9"
 fragment = "1.6.0"
 gson = "2.9.0"
-mlkitBarcode = "17.3.0"
-zxingCore = "3.4.0"
 googleAuthOauth2 = "1.11.0"
 playServicesAuth = "20.5.0"
 googleApiDrive = "v3-rev136-1.25.0"
@@ -46,6 +45,7 @@ androidx-corektx = { group = "androidx.core", name = "core-ktx", version.ref = "
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "lifecycleExtensions" }
 androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime", version.ref = "lifecycle" }
+flexbox = { module = "com.google.android.flexbox:flexbox", version.ref = "flexbox" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
 androidx-test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
@@ -57,8 +57,6 @@ rxandroid = { group = "io.reactivex.rxjava2", name = "rxandroid", version.ref = 
 rxjava = { group = "io.reactivex.rxjava2", name = "rxjava", version.ref = "rxJava" }
 androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
-mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
-zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxingCore" }
 google-auth-oauth2-http = { group = "com.google.auth", name = "google-auth-library-oauth2-http", version.ref = "googleAuthOauth2" }
 google-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 google-api-services-drive = { group = "com.google.apis", name = "google-api-services-drive", version.ref = "googleApiDrive" }

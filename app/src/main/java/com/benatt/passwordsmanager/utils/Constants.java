@@ -29,4 +29,6 @@ public class Constants {
     public static final String ID_TOKEN = "id_token";
 
     public static final String APP_PURCHASED = "purchased";
+
+    public static final int PASSWORD_LIMIT = 5;
 }

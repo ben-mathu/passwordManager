@@ -12,11 +12,18 @@
         tools:layout="@layout/fragment_home">
 
         <action
-            android:id="@+id/action_authentication_to_password_list"
+            android:id="@+id/action_homeFragment_to_passwordFragment"
             app:destination="@+id/fragment_passwords"
             app:launchSingleTop="true"
             app:popUpTo="@id/fragment_home"
             app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_aboutFragment"
+            app:destination="@+id/fragment_about"
+            app:launchSingleTop="false"
+            app:popUpTo="@id/fragment_home"
+            app:popUpToInclusive="false" />
     </fragment>
 
     <fragment

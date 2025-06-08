@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
             name="authViewModel"
@@ -13,63 +14,165 @@
         android:orientation="vertical"
         android:gravity="center">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/crypt_code_logo"
-            android:layout_marginBottom="20dp"
-            android:src="@mipmap/ic_launcher_round" />
-
-        <TextView
-            android:id="@+id/tv_header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_sub_header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sub_app_name"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="32dp" />
-
-        <com.google.android.material.button.MaterialButton
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btn_show_password"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/show_passwords"
-            app:icon="@android:drawable/ic_menu_save"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_marginBottom="10dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_backup"
-            android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                style="@style/Widget.Material3.Button.IconButton"
+                app:icon="@drawable/ic_action_chevron_right"/>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="30dp"
+                android:paddingStart="30dp"
+                android:paddingEnd="30dp"
+                app:flexDirection="column"
+                app:alignItems="center">
+
+                <ImageView
+                    android:id="@+id/image_view_logo"
+                    android:layout_width="85dp"
+                    android:layout_height="85dp"
+                    android:contentDescription="@string/crypt_code_logo"
+                    android:src="@mipmap/ic_launcher_round"
+                    android:layout_marginBottom="12dp"/>
+
+                <TextView
+                    android:id="@+id/tv_header"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textSize="32sp" />
+
+                <TextView
+                    android:id="@+id/tv_sub_header"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sub_app_name"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="15dp"/>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/md_theme_primary">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="15dp">
+
+                        <ImageView
+                            android:id="@+id/password_icon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="10dp"
+                            android:contentDescription="@string/password_icon"
+                            android:src="@android:drawable/ic_lock_lock"
+                            app:tint="@color/md_theme_onPrimary"/>
+
+                        <com.google.android.flexbox.FlexboxLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_toEndOf="@+id/password_icon"
+                            app:justifyContent="space_between"
+                            android:layout_centerVertical="true">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/show_passwords"
+                                android:textColor="@color/md_theme_onPrimary"/>
+
+                            <TextView
+                                android:id="@+id/password_count_tv"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                tools:text="2/5"
+                                android:textColor="@color/md_theme_onPrimary" />
+                        </com.google.android.flexbox.FlexboxLayout>
+                    </RelativeLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </com.google.android.flexbox.FlexboxLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/backup_passwords"
-            app:icon="@android:drawable/ic_menu_save"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:divider="@drawable/elements_vertical_divider_10dp"
+            android:showDividers="middle">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_restore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/restore_password"
-            android:drawableStart="@android:drawable/ic_menu_upload"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:divider="@drawable/elements_vertical_divider_10dp"
+                android:showDividers="middle">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_about"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/about"
-            android:drawableStart="@android:drawable/ic_menu_info_details" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_backup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/backup_passwords"
+                    app:icon="@drawable/ic_action_backup" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_restore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/restore_password"
+                    app:icon="@android:drawable/stat_sys_download" />
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_about"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="@string/about"
+                app:icon="@android:drawable/ic_menu_info_details">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_margin="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/about"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:id="@+id/tv_version"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="Version 2.3.4"
+                        android:textStyle="italic"
+                        android:layout_marginBottom="5dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/learn_more" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
     </LinearLayout>
 </layout>

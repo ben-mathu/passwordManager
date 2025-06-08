@@ -70,29 +70,6 @@ public class MainViewModel extends ViewModel {
                 }, throwable -> message.setValue("Error occurred. Please try again"));
     }
 
-    public void savedAndDecrypt(List<Password> passwordList) {
-        try {
-            for (Password password : passwordList) {
-                password.setCipher(Encryptor.encrypt(publicKey, password.getCipher()));
-
-                savePassword(password);
-            }
-        } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
-                 NoSuchAlgorithmException | InvalidKeyException e) {
-            Log.e(TAG, "savedAndDecrypt: Error", e);
-        }
-    }
-
-    private void savePassword(Password password) {
-        compositeDisposable.add(passwordRepo.save(password)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(msg -> Log.d(TAG, "savePasswords: " + msg), throwable ->
-                        Log.e(TAG, "savePasswords: Error" + throwable.getLocalizedMessage(), throwable)
-                )
-        );
-    }
-
     public void savePasswords(List<Password> passwords) {
         disposable = passwordRepo.saveAll(passwords)
                 .subscribeOn(Schedulers.io())

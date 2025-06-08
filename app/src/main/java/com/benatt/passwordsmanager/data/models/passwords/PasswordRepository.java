@@ -3,12 +3,14 @@ package com.benatt.passwordsmanager.data.models.passwords;
 import com.benatt.passwordsmanager.data.models.Dao;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -54,5 +56,13 @@ public class PasswordRepository extends Dao<Password> {
             passwordDao.saveAll(items);
             emitter.onNext("Passwords Saved successfully");
         });
+    }
+
+    public Single<Integer> count() {
+        return passwordDao.count();
+    }
+
+    public List<Password> getAllPasswords() {
+        return passwordDao.getAllPasswords();
     }
 }

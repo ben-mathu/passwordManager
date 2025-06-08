@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        setSupportActionBar(binding.toolbar);
 
         mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
         sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
         mainViewModel.getPasswords();
         mainViewModel.passwords.observe(this, passwords -> {
             passwordList = passwords;
-            sharedViewModel.hideProgressBar();
+            sharedViewModel.showLoader.postValue(false);
         });
 
         sharedViewModel.completeMsg.observe(this, msg ->
@@ -165,6 +166,17 @@ public class MainActivity extends AppCompatActivity {
         boolean isPasswordsMigrated = preferences.getBoolean(PASSWORDS_MIGRATED, false);
         if (!isPasswordsMigrated && Objects.equals(BuildConfig.VERSION_NAME, MIGRATING_VERSION))
             sharedViewModel.migratePasswords();
+
+        sharedViewModel.fileNameLiveData.observe(this, fileName -> {
+            File file = new File(getApplicationContext().getFilesDir(), fileName);
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+
+            intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
+                    "com.benatt.passwordsmanager.fileprovider", file));
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            backupActivityResultLauncher.launch(Intent.createChooser(intent, "Backup passwords"));
+        });
     }
 
     @Override
@@ -267,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.back_passwords) {
-            createBackup();
+            sharedViewModel.createBackup(this, passwordList);
             return true;
         } else if (item.getItemId() == R.id.restore_password) {
             restorePasswords();
@@ -293,7 +305,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("text/plain");
-        intent.putExtra("path", filePath);
 
         retrieveFileLauncher.launch(Intent.createChooser(intent, "Select a file"));
     }
@@ -304,26 +315,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "Successfully retrieved file -> ");
                     Uri contentUri = result.getData().getData();
                     if (contentUri != null) {
-                        new Thread(() -> {
-                            try (InputStream inputStream = getContentResolver().openInputStream(contentUri)) {
-                                if (inputStream != null) {
-                                    StringBuilder sb = new StringBuilder();
-                                    byte[] buffer = new byte[2046];
-                                    long read;
-                                    while ((read = inputStream.read(buffer)) != -1) {
-                                        sb.append(new String(buffer, 0, (int) read));
-                                    }
-
-                                    List<Password> passwordsList = gson.fromJson(sb.toString(), new TypeToken<List<Password>>() {
-                                    }.getType());
-                                    mainViewModel.savedAndDecrypt(passwordsList);
-                                }
-                                new Handler(getMainLooper())
-                                        .post(this::hideProgressBar);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }).start();
+                        sharedViewModel.restorePasswords(this, contentUri);
                     }
                 } else Log.e(TAG, "Could not retrieve file -> ");
             });
@@ -331,40 +323,6 @@ public class MainActivity extends AppCompatActivity {
     private void showMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT)
                 .show();
-    }
-
-    private void createBackup() {
-        showProgressBar();
-        SimpleDateFormat sp = new SimpleDateFormat("yyyyMMddHHmmssS", Locale.getDefault());
-        String fileName = sp.format(new Date()) + ".txt";
-        new Thread(() -> {
-            try (FileOutputStream fos = openFileOutput(fileName, Context.MODE_PRIVATE)) {
-
-                for (Password password : passwordList) {
-                    password.setCipher(Decryptor.decryptPassword(password.getCipher(), null, ALIAS));
-                }
-
-                String json = new Gson().toJson(passwordList);
-                if (fos != null) fos.write(json.getBytes(Charset.defaultCharset()));
-                else {
-                    Log.e(TAG, "Error uploading file -> important");
-                    return;
-                }
-
-                new Handler(getMainLooper()).post(() -> {
-                    File file = new File(getApplicationContext().getFilesDir(), fileName);
-                    Intent intent = new Intent(Intent.ACTION_SEND);
-                    intent.setType("text/plain");
-
-                    intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
-                            "com.benatt.passwordsmanager.fileprovider", file));
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    backupActivityResultLauncher.launch(Intent.createChooser(intent, "Backup passwords"));
-                });
-            } catch (IOException | Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).start();
     }
 
     Uri filePath;
