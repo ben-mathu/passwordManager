@@ -24,6 +24,13 @@
             app:launchSingleTop="false"
             app:popUpTo="@id/fragment_home"
             app:popUpToInclusive="false" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_proFragment"
+            app:destination="@+id/fragment_pro"
+            app:launchSingleTop="false"
+            app:popUpTo="@id/fragment_home"
+            app:popUpToInclusive="false" />
     </fragment>
 
     <fragment
@@ -59,4 +66,10 @@
         android:label="About"
         android:name="com.benatt.passwordsmanager.views.about.AboutFragment"
         tools:layout="@layout/fragment_about" />
+
+    <fragment
+        android:id="@+id/fragment_pro"
+        android:label="About"
+        android:name="com.benatt.passwordsmanager.views.ProModeFragment"
+        tools:layout="@layout/fragment_pro_mode" />
 </navigation>

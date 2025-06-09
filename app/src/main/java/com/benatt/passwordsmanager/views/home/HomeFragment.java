@@ -2,7 +2,6 @@ package com.benatt.passwordsmanager.views.home;
 
 import static com.benatt.passwordsmanager.utils.Constants.APP_PURCHASED;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
-import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN_WITH_GOOGLE;
 
 import android.app.Activity;
 import android.app.KeyguardManager;
@@ -11,7 +10,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,15 +28,10 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
-import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.FragmentHomeBinding;
 import com.benatt.passwordsmanager.views.SharedViewModel;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -87,6 +80,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         binding.btnBackup.setOnClickListener(this);
         binding.btnRestore.setOnClickListener(this);
         binding.btnAbout.setOnClickListener(this);
+        binding.btnProMode.setOnClickListener(this);
         return binding.getRoot();
     }
 
@@ -126,6 +120,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             restorePasswords();
         } else if (view.getId() == R.id.btn_about) {
             controller.navigate(R.id.action_homeFragment_to_aboutFragment);
+        } else if (view.getId() == R.id.btn_pro_mode) {
+            controller.navigate(R.id.action_homeFragment_to_proFragment);
         } else {
             throw new IllegalStateException("Unexpected value: " + view.getId());
         }

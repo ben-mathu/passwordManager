@@ -168,9 +168,10 @@
                         android:layout_marginBottom="5dp"/>
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_pro_mode"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/learn_more" />
+                        android:text="@string/pro_mode" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
