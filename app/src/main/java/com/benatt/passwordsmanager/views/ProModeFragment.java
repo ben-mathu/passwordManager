@@ -23,6 +23,9 @@ import com.benatt.passwordsmanager.utils.billing.BillingManager;
 
 import javax.inject.Inject;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class ProModeFragment extends Fragment implements View.OnClickListener {
     @Inject
     BillingManager billingManager;
