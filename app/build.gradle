@@ -18,8 +18,8 @@ android {
         applicationId "com.benatt.passwordsmanager"
         minSdkVersion 24
         targetSdk 35
-        versionCode 31
-        versionName "5.0.0-alpha"
+        versionCode 32
+        versionName "5.0.0-alpha2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,12 +43,14 @@ android {
             buildConfigField "String", "ALIAS", "\"${localProperties["key_alias"] ?: ""}\""
             buildConfigField "String", "PREV_ALIAS", "\"${localProperties["prev_key_alias"] ?: ""}\""
             buildConfigField "String", "MIGRATING_VERSION", "\"${localProperties["migrating_version"] ?: ""}\""
+            buildConfigField "String", "CLIENT_ID", "\"${localProperties["CLIENT_ID"] ?: ""}\""
         }
 
         debug {
             buildConfigField "String", "ALIAS", "\"${localProperties["key_alias"] ?: ""}\""
             buildConfigField "String", "PREV_ALIAS", "\"${localProperties["prev_key_alias"] ?: ""}\""
             buildConfigField "String", "MIGRATING_VERSION", "\"${localProperties["migrating_version"] ?: ""}\""
+            buildConfigField "String", "CLIENT_ID", "\"${localProperties["CLIENT_ID"] ?: ""}\""
         }
     }
 
@@ -105,6 +107,9 @@ dependencies {
     implementation(libs.google.play.services.auth)
 
     implementation(libs.google.api.services.drive)
+    implementation(libs.credentials)
+    implementation(libs.credentials.auth)
+    implementation(libs.googleId)
 
     implementation(libs.google.api.client.android)
 
@@ -113,12 +118,6 @@ dependencies {
     implementation platform(libs.firebase.bom)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
-
-    // ML Kit
-    implementation(libs.mlkit.barcode.scanning)
-
-    // Zxing
-    implementation(libs.zxing.core)
 
     implementation(libs.google.auth.oauth2.http)
 
@@ -131,4 +130,7 @@ dependencies {
 
     // Billing
     implementation(libs.billing)
+
+    // Flex Layout
+    implementation libs.flexbox
 }

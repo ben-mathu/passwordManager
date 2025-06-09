@@ -4,6 +4,7 @@ import static com.benatt.passwordsmanager.utils.Constants.EDIT_PASSWORD;
 import static com.benatt.passwordsmanager.utils.Decryptor.decryptPassword;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,8 +40,6 @@ public class AddPasswordFragment extends Fragment {
     private AddPasswordViewModel addPasswordViewModel;
     private FragmentAddPasswordBinding binding;
 
-    private boolean isShowingPrefs = false;
-
     private int passwordLength = 8;
     private Password password;
 
@@ -65,17 +64,11 @@ public class AddPasswordFragment extends Fragment {
             binding.setPassword(password);
         }
 
-//        binding.edtAccountName.setText(password.getAccountName());
-
-        binding.btnShowPrefs.setOnClickListener(view -> {
-            if (isShowingPrefs) {
+        binding.tilPassword.setEndIconOnClickListener(view -> {
+            if (binding.llPreferences.getVisibility() == View.VISIBLE) {
                 binding.llPreferences.setVisibility(View.GONE);
-                binding.btnShowPrefs.setText(R.string.gen_password);
-                isShowingPrefs = false;
             } else {
                 binding.llPreferences.setVisibility(View.VISIBLE);
-                binding.btnShowPrefs.setText(R.string.hide);
-                isShowingPrefs = true;
             }
         });
 
@@ -123,8 +116,10 @@ public class AddPasswordFragment extends Fragment {
     }
 
     private void savePassword() {
+        Editable editablePassword = binding.edtPassword.getText();
+        if (editablePassword == null) return;
 
-        addPasswordViewModel.savePassword(password, binding.edtPassword.getText().toString());
+        addPasswordViewModel.savePassword(password, editablePassword.toString());
     }
 
     private String generatePassword(View view) {

@@ -1,0 +1,15 @@
+<p>Buying me tea is a one-time app payment.<br>What you get:</p>
+<ul>
+<li>&nbsp;Infinite number of passwords and secret phrases  </li>
+<li>&nbsp;Future features  </li>
+<li>&nbsp;No ads  </li>
+<li>&nbsp;Gratitude (for what that’s worth)</li>
+</ul>
+<p>As much as my developer would like you to think they are nice, there are a few things that they might not guarantee you:</p>
+<ul>
+<li>&nbsp;You might lose your passwords if you don’t back them up. So make sure you backup regularly  </li>
+<li>&nbsp;Your suggestions might not be implemented  </li>
+<li>&nbsp;You one-time payment will not be on other accounts except the one you buy it on  </li>
+<li>&nbsp;Guaranteed continued development of this app</li>
+</ul>
+<p>So…how about that tea?</p>

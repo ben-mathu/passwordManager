@@ -1,0 +1,7 @@
+<h2 id="app-description">App Description</h2>
+<p>Crypt Code is a simple app that helps you manage your passwords or secret phrases.</p>
+<p>One thing to note:</p>
+<ul>
+    <li>&nbsp;If you don’t backup your passwords or phrases, you might lose them. I can’t guarantee your passwords will be safe.</li>
+    <li>&nbsp;I do not communicate with a remote backend service from my developer. Your data is only locally stored.</li>
+</ul>

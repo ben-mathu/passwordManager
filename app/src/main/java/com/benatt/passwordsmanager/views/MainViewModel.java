@@ -36,6 +36,7 @@ public class MainViewModel extends ViewModel {
 
     public MutableLiveData<String> message = new MutableLiveData<>();
     public MutableLiveData<List<Password>> passwords = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isNotHome = new MutableLiveData<>(false);
 
     private Disposable disposable;
     private final CompositeDisposable compositeDisposable;
@@ -69,29 +70,6 @@ public class MainViewModel extends ViewModel {
                 }, throwable -> message.setValue("Error occurred. Please try again"));
     }
 
-    public void savedAndDecrypt(List<Password> passwordList) {
-        try {
-            for (Password password : passwordList) {
-                password.setCipher(Encryptor.encrypt(publicKey, password.getCipher()));
-
-                savePassword(password);
-            }
-        } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
-                 NoSuchAlgorithmException | InvalidKeyException e) {
-            Log.e(TAG, "savedAndDecrypt: Error", e);
-        }
-    }
-
-    private void savePassword(Password password) {
-        compositeDisposable.add(passwordRepo.save(password)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(msg -> Log.d(TAG, "savePasswords: " + msg), throwable ->
-                        Log.e(TAG, "savePasswords: Error" + throwable.getLocalizedMessage(), throwable)
-                )
-        );
-    }
-
     public void savePasswords(List<Password> passwords) {
         disposable = passwordRepo.saveAll(passwords)
                 .subscribeOn(Schedulers.io())
@@ -99,5 +77,13 @@ public class MainViewModel extends ViewModel {
                 .subscribe(msg -> Log.d(TAG, "savePasswords: " + msg), throwable ->
                         Log.e(TAG, "savePasswords: Error" + throwable.getLocalizedMessage(), throwable)
                 );
+    }
+
+    public MutableLiveData<Boolean> isNotHome() {
+        return isNotHome;
+    }
+
+    public void setNotHome(boolean isHome) {
+        this.isNotHome.postValue(isHome);
     }
 }

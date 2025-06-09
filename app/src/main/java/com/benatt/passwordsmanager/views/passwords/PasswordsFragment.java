@@ -51,7 +51,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         super.onStart();
 
         sharedViewModel.getPasswords();
-        sharedViewModel.showProgressBar();
+        sharedViewModel.showLoader.postValue(true);
     }
 
     @Nullable
@@ -64,11 +64,11 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         PasswordsViewModel passwordsViewModel = new ViewModelProvider(this).get(PasswordsViewModel.class);
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
-        sharedViewModel.msgEmpty.observe(getViewLifecycleOwner(), s -> {
+        sharedViewModel.errorMsg.observe(getViewLifecycleOwner(), s -> {
             showMessage(s, binding.getRoot());
             binding.rvPasswordList.setVisibility(View.GONE);
             binding.llPlaceholder.setVisibility(View.VISIBLE);
-            sharedViewModel.hideProgressBar();
+            sharedViewModel.showLoader.postValue(false);
         });
 
         adapter = new PasswordsAdapter(this, requireActivity());
@@ -77,7 +77,7 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
 
         sharedViewModel.passwords.observe(getViewLifecycleOwner(), passwords -> {
             adapter.setPasswords(passwords);
-            sharedViewModel.hideProgressBar();
+            sharedViewModel.showLoader.postValue(false);
             sharedViewModel.showBottomNav();
 
             if (!passwords.isEmpty() && binding.rvPasswordList.getVisibility() == View.GONE) {
