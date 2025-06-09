@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingResult;
@@ -56,6 +57,7 @@ public class ProModeFragment extends Fragment implements View.OnClickListener {
     private void handleBillingResult(BillingResult billingResult) {
         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
             preferences.edit().putBoolean(APP_PURCHASED, true).apply();
+            NavHostFragment.findNavController(this).navigateUp();
         }
     }
 }
