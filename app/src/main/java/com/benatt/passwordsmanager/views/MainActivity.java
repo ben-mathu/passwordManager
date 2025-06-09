@@ -5,6 +5,7 @@ import static com.benatt.passwordsmanager.BuildConfig.MIGRATING_VERSION;
 import static com.benatt.passwordsmanager.utils.Constants.APP_PURCHASED;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
+import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN;
 
 import android.app.KeyguardManager;
@@ -102,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
             showMessage(msg);
         });
 
+        boolean isPaid = preferences.getBoolean(APP_PURCHASED, false);
+
         // setup bottom navigation
         NavHostFragment navHost = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
         if (navHost != null) {
@@ -111,8 +114,18 @@ public class MainActivity extends AppCompatActivity {
             NavigationUI.setupWithNavController(bottomNav, navController);
 
             bottomNav.setOnItemSelectedListener(item -> {
-                if (item.getItemId() == R.id.add_password) {
+                if (item.getItemId() == R.id.add_password && (isPaid || passwordList.size() < PASSWORD_LIMIT)) {
                     navController.navigate(R.id.action_passwords_to_add_password);
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                            .setTitle("Limit Reached")
+                            .setMessage(getString(R.string.password_limit_reached))
+                            .setPositiveButton("Learn More", (dialog, which) -> {
+                                navController.navigate(R.id.fragment_pro);
+                            }).setNegativeButton("Cancel", (dialog, which) -> {
+                                dialog.dismiss();
+                            });
+                    builder.show();
                 }
                 return true;
             });

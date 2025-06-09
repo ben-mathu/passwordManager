@@ -67,6 +67,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
         controller = NavHostFragment.findNavController(this);
 
+        if (isPaid) {
+            binding.btnProMode.setVisibility(View.GONE);
+            binding.btnLearnMore.setVisibility(View.VISIBLE);
+        } else {
+            binding.btnProMode.setVisibility(View.VISIBLE);
+            binding.btnLearnMore.setVisibility(View.GONE);
+        }
+
         viewModel.getPasswordsCount();
 
         viewModel.countLiveData.observe(getViewLifecycleOwner(), count -> {

@@ -51,4 +51,6 @@
     <string name="crypt_code_logo">Crypt Code Logo</string>
     <string name="password_icon">Password Icon</string>
     <string name="pro_mode">Buy Me Tea</string>
+    <string name="learn_more">Learn More</string>
+    <string name="password_limit_reached">You have reached the limit for the number of passwords or secret phrases.</string>
 </resources>
