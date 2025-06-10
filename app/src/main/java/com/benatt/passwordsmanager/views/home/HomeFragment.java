@@ -51,28 +51,18 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     SharedPreferences preferences;
 
     private boolean isPaid;
-    private String format;
     private FragmentHomeBinding binding;
     private int count;
+    private HomeViewModel viewModel;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        HomeViewModel viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         controller = NavHostFragment.findNavController(this);
-
-        if (isPaid) {
-            binding.btnProMode.setVisibility(View.GONE);
-            binding.btnLearnMore.setVisibility(View.VISIBLE);
-        } else {
-            binding.btnProMode.setVisibility(View.VISIBLE);
-            binding.btnLearnMore.setVisibility(View.GONE);
-        }
-
-        viewModel.getPasswordsCount();
 
         viewModel.countLiveData.observe(getViewLifecycleOwner(), count -> this.count = count);
 
@@ -102,9 +92,18 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         super.onResume();
 
         isPaid = preferences.getBoolean(APP_PURCHASED, false);
-        format = "%d";
+        String format = "%d";
         if (!isPaid) format = "%d/%d";
 
+        if (isPaid) {
+            binding.btnProMode.setVisibility(View.GONE);
+            binding.btnLearnMore.setVisibility(View.VISIBLE);
+        } else {
+            binding.btnProMode.setVisibility(View.VISIBLE);
+            binding.btnLearnMore.setVisibility(View.GONE);
+        }
+
+        viewModel.getPasswordsCount();
         binding.passwordCountTv.setText(String.format(format, count, PASSWORD_LIMIT));
     }
 
@@ -131,7 +130,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             sharedViewModel.createBackup(requireActivity(), Collections.emptyList());
         } else if (view.getId() == R.id.btn_restore) {
             restorePasswords();
-        } else if (view.getId() == R.id.btn_about && view.getId() == R.id.btn_learn_more) {
+        } else if (view.getId() == R.id.btn_about || view.getId() == R.id.btn_learn_more) {
             controller.navigate(R.id.action_homeFragment_to_aboutFragment);
         } else if (view.getId() == R.id.btn_pro_mode) {
             controller.navigate(R.id.action_homeFragment_to_proFragment);

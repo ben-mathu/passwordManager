@@ -30,5 +30,5 @@ public class Constants {
 
     public static final String APP_PURCHASED = "purchased";
 
-    public static final int PASSWORD_LIMIT = 35;
+    public static final int PASSWORD_LIMIT = 5;
 }

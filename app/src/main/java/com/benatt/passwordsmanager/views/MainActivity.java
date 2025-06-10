@@ -39,6 +39,7 @@ import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
+import com.benatt.passwordsmanager.utils.billing.BillingCallback;
 import com.benatt.passwordsmanager.utils.billing.BillingManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -195,7 +196,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        billingManager.checkPayment(this::handleBillingResult);
+        billingManager.checkPayment(new BillingCallback() {
+            @Override
+            public void onPurchasesUpdated(BillingResult billingResult) {
+                handleBillingResult(billingResult);
+            }
+
+            @Override
+            public void productPurchased() {
+                preferences.edit().putBoolean(APP_PURCHASED, true).apply();
+            }
+        });
     }
 
     private final ActivityResultLauncher<Intent> keyGuardLauncher =

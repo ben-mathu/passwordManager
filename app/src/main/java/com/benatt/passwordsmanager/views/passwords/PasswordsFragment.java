@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -65,10 +66,13 @@ public class PasswordsFragment extends Fragment implements OnItemClick {
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         sharedViewModel.errorMsg.observe(getViewLifecycleOwner(), s -> {
-            showMessage(s, binding.getRoot());
-            binding.rvPasswordList.setVisibility(View.GONE);
-            binding.llPlaceholder.setVisibility(View.VISIBLE);
-            sharedViewModel.showLoader.postValue(false);
+            if (s != null) {
+                showMessage(s, binding.getRoot());
+                binding.rvPasswordList.setVisibility(View.GONE);
+                binding.llPlaceholder.setVisibility(View.VISIBLE);
+                sharedViewModel.showLoader.postValue(false);
+                sharedViewModel.errorMsg = new MutableLiveData<>();
+            }
         });
 
         adapter = new PasswordsAdapter(this, requireActivity());

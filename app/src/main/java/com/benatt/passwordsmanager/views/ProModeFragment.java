@@ -6,6 +6,7 @@ import static com.benatt.passwordsmanager.utils.Constants.APP_PURCHASED;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Spanned;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingResult;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.databinding.FragmentProModeBinding;
+import com.benatt.passwordsmanager.utils.billing.BillingCallback;
 import com.benatt.passwordsmanager.utils.billing.BillingManager;
 
 import javax.inject.Inject;
@@ -28,6 +30,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ProModeFragment extends Fragment implements View.OnClickListener {
+    private static final String TAG = ProModeFragment.class.getSimpleName();
+
     @Inject
     BillingManager billingManager;
 
@@ -50,13 +54,28 @@ public class ProModeFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.btn_unlock_premium) {
-            billingManager.launchBillingFlow(requireActivity(), this::handleBillingResult);
+            billingManager.launchBillingFlow(requireActivity(), new BillingCallback() {
+                @Override
+                public void onPurchasesUpdated(BillingResult billingResult) {
+                    handleBillingResult(billingResult);
+                }
+
+                @Override
+                public void productPurchased() {
+                    preferences.edit().putBoolean(APP_PURCHASED, true).apply();
+                }
+            });
         }
     }
 
     private void handleBillingResult(BillingResult billingResult) {
-        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK || billingResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
             preferences.edit().putBoolean(APP_PURCHASED, true).apply();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Log.e(TAG, "handleBillingResult -> ", e);
+            }
             NavHostFragment.findNavController(this).navigateUp();
         }
     }
