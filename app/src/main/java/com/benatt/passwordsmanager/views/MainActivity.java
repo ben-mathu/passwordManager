@@ -1,10 +1,10 @@
 package com.benatt.passwordsmanager.views;
 
-import static com.benatt.passwordsmanager.BuildConfig.ALIAS;
 import static com.benatt.passwordsmanager.BuildConfig.MIGRATING_VERSION;
 import static com.benatt.passwordsmanager.utils.Constants.APP_PURCHASED;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
+import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN;
 
 import android.app.KeyguardManager;
@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -40,21 +39,12 @@ import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
-import com.benatt.passwordsmanager.exceptions.Exception;
-import com.benatt.passwordsmanager.utils.Decryptor;
+import com.benatt.passwordsmanager.utils.billing.BillingCallback;
 import com.benatt.passwordsmanager.utils.billing.BillingManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -77,8 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
     private List<Password> passwords = new ArrayList<>();
     private List<Password> passwordList = new ArrayList<>();
-
-    private final Gson gson = new Gson();
 
     @Inject
     SharedPreferences preferences;
@@ -111,8 +99,17 @@ public class MainActivity extends AppCompatActivity {
             NavigationUI.setupWithNavController(bottomNav, navController);
 
             bottomNav.setOnItemSelectedListener(item -> {
-                if (item.getItemId() == R.id.add_password) {
+                if (item.getItemId() == R.id.add_password && (preferences.getBoolean(APP_PURCHASED, false) || passwordList.size() < PASSWORD_LIMIT)) {
                     navController.navigate(R.id.action_passwords_to_add_password);
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                            .setTitle("Limit Reached")
+                            .setMessage(getString(R.string.password_limit_reached))
+                            .setPositiveButton("Learn More",
+                                    (dialog, which) -> navController.navigate(R.id.fragment_pro))
+                            .setNegativeButton("Cancel",
+                                    (dialog, which) -> dialog.dismiss());
+                    builder.show();
                 }
                 return true;
             });
@@ -194,8 +191,22 @@ public class MainActivity extends AppCompatActivity {
                 keyGuardLauncher.launch(intent);
             }
         }
+    }
 
-        billingManager.checkPayment(this::handleBillingResult);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        billingManager.checkPayment(new BillingCallback() {
+            @Override
+            public void onPurchasesUpdated(BillingResult billingResult) {
+                handleBillingResult(billingResult);
+            }
+
+            @Override
+            public void productPurchased() {
+                preferences.edit().putBoolean(APP_PURCHASED, true).apply();
+            }
+        });
     }
 
     private final ActivityResultLauncher<Intent> keyGuardLauncher =

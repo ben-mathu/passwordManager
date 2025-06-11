@@ -21,14 +21,14 @@
         <action
             android:id="@+id/action_homeFragment_to_aboutFragment"
             app:destination="@+id/fragment_about"
-            app:launchSingleTop="false"
+            app:launchSingleTop="true"
             app:popUpTo="@id/fragment_home"
             app:popUpToInclusive="false" />
 
         <action
             android:id="@+id/action_homeFragment_to_proFragment"
             app:destination="@+id/fragment_pro"
-            app:launchSingleTop="false"
+            app:launchSingleTop="true"
             app:popUpTo="@id/fragment_home"
             app:popUpToInclusive="false" />
     </fragment>
@@ -42,7 +42,7 @@
         <action
             android:id="@+id/action_passwords_to_add_password"
             app:destination="@+id/fragment_add_password"
-            app:launchSingleTop="false"
+            app:launchSingleTop="true"
             app:popUpTo="@id/fragment_passwords"
             app:popUpToInclusive="false"/>
     </fragment>

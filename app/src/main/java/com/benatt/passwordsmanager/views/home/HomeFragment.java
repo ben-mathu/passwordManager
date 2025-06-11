@@ -49,31 +49,22 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
     @Inject
     SharedPreferences preferences;
+
     private boolean isPaid;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        isPaid = preferences.getBoolean(APP_PURCHASED, false);
-    }
+    private FragmentHomeBinding binding;
+    private int count;
+    private HomeViewModel viewModel;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        FragmentHomeBinding binding = FragmentHomeBinding.inflate(inflater, container, false);
-        HomeViewModel viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         controller = NavHostFragment.findNavController(this);
 
-        viewModel.getPasswordsCount();
-
-        viewModel.countLiveData.observe(getViewLifecycleOwner(), count -> {
-            String format = "%d";
-            if (!isPaid) format = "%d/%d";
-            binding.passwordCountTv.setText(String.format(format, count, PASSWORD_LIMIT));
-        });
+        viewModel.countLiveData.observe(getViewLifecycleOwner(), count -> this.count = count);
 
         binding.tvVersion.setText(String.format("Version %s", BuildConfig.VERSION_NAME));
         binding.btnShowPassword.setOnClickListener(this);
@@ -81,6 +72,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         binding.btnRestore.setOnClickListener(this);
         binding.btnAbout.setOnClickListener(this);
         binding.btnProMode.setOnClickListener(this);
+        binding.btnLearnMore.setOnClickListener(this);
         return binding.getRoot();
     }
 
@@ -93,6 +85,26 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         if (!keyguardManager.isDeviceSecure()) {
             showDialog();
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        isPaid = preferences.getBoolean(APP_PURCHASED, false);
+        String format = "%d";
+        if (!isPaid) format = "%d/%d";
+
+        if (isPaid) {
+            binding.btnProMode.setVisibility(View.GONE);
+            binding.btnLearnMore.setVisibility(View.VISIBLE);
+        } else {
+            binding.btnProMode.setVisibility(View.VISIBLE);
+            binding.btnLearnMore.setVisibility(View.GONE);
+        }
+
+        viewModel.getPasswordsCount();
+        binding.passwordCountTv.setText(String.format(format, count, PASSWORD_LIMIT));
     }
 
     private void showDialog() {
@@ -118,7 +130,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             sharedViewModel.createBackup(requireActivity(), Collections.emptyList());
         } else if (view.getId() == R.id.btn_restore) {
             restorePasswords();
-        } else if (view.getId() == R.id.btn_about) {
+        } else if (view.getId() == R.id.btn_about || view.getId() == R.id.btn_learn_more) {
             controller.navigate(R.id.action_homeFragment_to_aboutFragment);
         } else if (view.getId() == R.id.btn_pro_mode) {
             controller.navigate(R.id.action_homeFragment_to_proFragment);

@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.Fragment;
 
+import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.databinding.FragmentAboutBinding;
 
@@ -25,6 +26,7 @@ public class AboutFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         FragmentAboutBinding binding = FragmentAboutBinding.inflate(inflater, container, false);
+        binding.appName.setText(String.format("%s version %s", getString(R.string.app_name), BuildConfig.VERSION_NAME));
 
         String htmlText = readAppDescription(requireActivity(), R.raw.about);
         if (htmlText != null) {

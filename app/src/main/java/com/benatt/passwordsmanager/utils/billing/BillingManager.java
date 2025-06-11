@@ -92,7 +92,9 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     @Override
     public void onPurchasesUpdated(@NonNull BillingResult billingResult, @Nullable List<Purchase> list) {
-        if (billingResult.getResponseCode() != BillingClient.BillingResponseCode.OK || list == null) {
+        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            callback.onPurchasesUpdated(billingResult);
+        } else if (billingResult.getResponseCode() != BillingClient.BillingResponseCode.OK || list == null) {
             Log.e(TAG, "onPurchasesUpdated -> Error while updating purchases");
         } else {
             acknowledgePurchases(list);
@@ -108,7 +110,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                             .build();
                     billingClient.acknowledgePurchase(params, billingResult ->
                             callback.onPurchasesUpdated(billingResult));
-                }
+                } else callback.productPurchased();
             }
         }
     }

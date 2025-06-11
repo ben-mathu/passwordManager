@@ -4,4 +4,5 @@ import com.android.billingclient.api.BillingResult;
 
 public interface BillingCallback {
     void onPurchasesUpdated(BillingResult billingResult);
+    void productPurchased();
 }
