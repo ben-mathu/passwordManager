@@ -60,7 +60,9 @@ public class BillingManager implements PurchasesUpdatedListener {
         this.callback = callback;
 
         Product product = Product.newBuilder()
-                .setProductId("com.benatt.passwordsmanager.cryptcode_root_access.test1")
+                .setProductId("com.benatt.passwordsmanager.cryptcode_root_access
+
+")
                 .setProductType(BillingClient.ProductType.INAPP)
                 .build();
 
