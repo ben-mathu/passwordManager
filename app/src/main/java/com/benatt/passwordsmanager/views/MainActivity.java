@@ -1,7 +1,7 @@
 package com.benatt.passwordsmanager.views;
 
+import static com.benatt.core.utils.Constants.APP_PURCHASED;
 import static com.benatt.passwordsmanager.BuildConfig.MIGRATING_VERSION;
-import static com.benatt.passwordsmanager.utils.Constants.APP_PURCHASED;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
@@ -35,12 +35,12 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingResult;
+import com.benatt.core.billing.BillingCallback;
+import com.benatt.core.billing.BillingManager;
 import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
-import com.benatt.passwordsmanager.utils.billing.BillingCallback;
-import com.benatt.passwordsmanager.utils.billing.BillingManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.File;
@@ -198,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         billingManager.checkPayment(new BillingCallback() {
             @Override
-            public void onPurchasesUpdated(BillingResult billingResult) {
+            public void onPurchasesUpdated(@NonNull BillingResult billingResult) {
                 handleBillingResult(billingResult);
             }
 

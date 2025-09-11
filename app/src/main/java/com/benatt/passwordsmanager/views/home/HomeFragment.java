@@ -1,6 +1,6 @@
 package com.benatt.passwordsmanager.views.home;
 
-import static com.benatt.passwordsmanager.utils.Constants.APP_PURCHASED;
+import static com.benatt.core.utils.Constants.APP_PURCHASED;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
 
 import android.app.Activity;
@@ -50,7 +50,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     @Inject
     SharedPreferences preferences;
 
-    private boolean isPaid;
     private FragmentHomeBinding binding;
     private int count;
     private HomeViewModel viewModel;
@@ -91,7 +90,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     public void onResume() {
         super.onResume();
 
-        isPaid = preferences.getBoolean(APP_PURCHASED, false);
+        boolean isPaid = preferences.getBoolean(APP_PURCHASED, false);
         String format = "%d";
         if (!isPaid) format = "%d/%d";
 
