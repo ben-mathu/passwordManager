@@ -1,6 +1,6 @@
 package com.benatt.passwordsmanager.views.about;
 
-import static com.benatt.passwordsmanager.utils.AppUtil.readAppDescription;
+import static com.benatt.core.utils.AppUtil.readAppDescription;
 
 import android.os.Bundle;
 import android.text.Spanned;

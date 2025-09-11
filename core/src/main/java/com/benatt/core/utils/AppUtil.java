@@ -1,4 +1,4 @@
-package com.benatt.passwordsmanager.utils;
+package com.benatt.core.utils;
 
 import android.content.Context;
 import android.util.Log;
@@ -15,8 +15,9 @@ public class AppUtil {
     public static String readAppDescription(Context context, int resInt) {
         BufferedReader reader;
         StringBuilder builder = new StringBuilder();
-        try(InputStream inputStream = context.getResources().openRawResource(resInt)) {
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+        try(InputStream inputStream = context.getResources().openRawResource(resInt);
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+
             reader = new BufferedReader(inputStreamReader);
             String line;
             while ((line = reader.readLine()) != null) {
@@ -24,7 +25,7 @@ public class AppUtil {
             }
             return builder.toString();
         } catch (IOException e) {
-            Log.e(TAG, "Error reading raw text file line by line: ${e.message}", e);
+            Log.e(TAG, "Error reading raw text file line by line: " + e.getMessage(), e);
         }
         return null;
     }
