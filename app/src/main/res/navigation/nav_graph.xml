@@ -70,6 +70,6 @@
     <fragment
         android:id="@+id/fragment_pro"
         android:label="About"
-        android:name="com.benatt.passwordsmanager.views.ProModeFragment"
+        android:name="com.benatt.core.billing.ProModeFragment"
         tools:layout="@layout/fragment_pro_mode" />
 </navigation>
