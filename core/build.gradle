@@ -1,7 +1,10 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.dagger.hilt)
+    id 'maven-publish'
 }
+
+def coreVersion = "1.0.0"
 
 android {
     namespace "com.benatt.core"
@@ -55,4 +58,34 @@ dependencies {
 
     // Preferences
     api(libs.preferences)
+}
+
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId = 'com.benatt.core'
+                artifactId = 'core'
+                version = coreVersion
+
+                artifact(bundleReleaseAar)
+            }
+        }
+
+        repositories {
+            mavenLocal()
+
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/ben-mathu/core") // Replace with your username and repository name
+                credentials {
+                    username = localProperties["GPR_USER"]
+                    password = localProperties["GPR_KEY"]
+                }
+            }
+        }
+    }
 }

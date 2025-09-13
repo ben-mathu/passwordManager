@@ -57,11 +57,11 @@ public class BillingManager implements PurchasesUpdatedListener {
         });
     }
 
-    public void launchBillingFlow(Activity activity, BillingCallback callback) {
+    public void launchBillingFlow(Activity activity, BillingCallback callback, String productId) {
         this.callback = callback;
 
         QueryProductDetailsParams.Product product = QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("com.benatt.passwordsmanager.cryptcode_root_access.test1")
+                .setProductId(productId)
                 .setProductType(BillingClient.ProductType.INAPP)
                 .build();
 

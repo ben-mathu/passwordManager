@@ -1,6 +1,8 @@
 package com.benatt.passwordsmanager.views;
 
 import static com.benatt.core.utils.Constants.APP_PURCHASED;
+import static com.benatt.core.utils.Constants.PRODUCT_ID;
+import static com.benatt.core.utils.Constants.UI_CONTENT;
 import static com.benatt.passwordsmanager.BuildConfig.MIGRATING_VERSION;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
@@ -37,6 +39,7 @@ import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingResult;
 import com.benatt.core.billing.BillingCallback;
 import com.benatt.core.billing.BillingManager;
+import com.benatt.core.utils.AppUtil;
 import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
@@ -105,8 +108,12 @@ public class MainActivity extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this)
                             .setTitle("Limit Reached")
                             .setMessage(getString(R.string.password_limit_reached))
-                            .setPositiveButton("Learn More",
-                                    (dialog, which) -> navController.navigate(R.id.fragment_pro))
+                            .setPositiveButton("Learn More", (dialog, which) -> {
+                                Bundle bundle = new Bundle();
+                                bundle.putString(PRODUCT_ID, "com.benatt.passwordsmanager.cryptcode_root_access");
+                                bundle.putString(UI_CONTENT, AppUtil.readAppDescription(this, R.raw.pro_mode));
+                                navController.navigate(R.id.fragment_pro, bundle);
+                            })
                             .setNegativeButton("Cancel",
                                     (dialog, which) -> dialog.dismiss());
                     builder.show();
@@ -199,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
         billingManager.checkPayment(new BillingCallback() {
             @Override
             public void onPurchasesUpdated(@NonNull BillingResult billingResult) {
-                handleBillingResult(billingResult);
+                AppUtil.handleBillingResult(preferences, billingResult);
             }
 
             @Override
@@ -303,12 +310,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void handleBillingResult(BillingResult billingResult) {
-        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-            preferences.edit().putBoolean(APP_PURCHASED, true).apply();
-        }
     }
 
     public void restorePasswords() {

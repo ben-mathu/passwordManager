@@ -1,7 +1,13 @@
 package com.benatt.core.utils;
 
+import static com.benatt.core.utils.Constants.APP_PURCHASED;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
+
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,5 +34,11 @@ public class AppUtil {
             Log.e(TAG, "Error reading raw text file line by line: " + e.getMessage(), e);
         }
         return null;
+    }
+
+    public static void handleBillingResult(SharedPreferences preferences, BillingResult billingResult) {
+        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+            preferences.edit().putBoolean(APP_PURCHASED, true).apply();
+        }
     }
 }

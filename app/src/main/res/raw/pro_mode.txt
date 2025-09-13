@@ -1,4 +1,4 @@
-<p>Buying me tea is a one-time app payment.<br>What you get:</p>
+<p>Buying my developer tea is a one-time app purchase.<br>What you get:</p>
 <ul>
 <li>&nbsp;Infinite number of passwords and secret phrases  </li>
 <li>&nbsp;Future features  </li>
