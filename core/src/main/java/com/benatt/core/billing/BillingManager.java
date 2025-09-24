@@ -94,7 +94,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
             callback.onPurchasesUpdated(billingResult);
         } else if (billingResult.getResponseCode() != BillingClient.BillingResponseCode.OK || list == null) {
-            Log.e(TAG, "onPurchasesUpdated -> Error while updating purchases");
+            callback.onPurchaseFailed();
         } else {
             acknowledgePurchases(list);
         }
@@ -107,10 +107,11 @@ public class BillingManager implements PurchasesUpdatedListener {
                     AcknowledgePurchaseParams params = AcknowledgePurchaseParams.newBuilder()
                             .setPurchaseToken(purchase.getPurchaseToken())
                             .build();
-                    billingClient.acknowledgePurchase(
-                            params, billingResult -> callback.onPurchasesUpdated(billingResult)
-                    );
+                    billingClient.acknowledgePurchase(params,
+                            billingResult -> callback.onPurchasesUpdated(billingResult));
                 } else callback.productPurchased();
+            } else if (purchase.getPurchaseState() == Purchase.PurchaseState.PENDING) {
+                callback.notifyPendingPurchase();
             }
         }
     }
