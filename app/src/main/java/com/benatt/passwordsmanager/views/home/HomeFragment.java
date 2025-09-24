@@ -1,7 +1,10 @@
 package com.benatt.passwordsmanager.views.home;
 
 import static com.benatt.core.utils.Constants.APP_PURCHASED;
+import static com.benatt.core.utils.Constants.PRODUCT_ID;
+import static com.benatt.core.utils.Constants.UI_CONTENT;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
+import static com.benatt.passwordsmanager.utils.Constants.PRODUCT_ID_VALUE;
 
 import android.app.Activity;
 import android.app.KeyguardManager;
@@ -26,6 +29,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.benatt.core.utils.AppUtil;
 import com.benatt.passwordsmanager.BuildConfig;
 import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.databinding.FragmentHomeBinding;
@@ -132,7 +136,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         } else if (view.getId() == R.id.btn_about || view.getId() == R.id.btn_learn_more) {
             controller.navigate(R.id.action_homeFragment_to_aboutFragment);
         } else if (view.getId() == R.id.btn_pro_mode) {
-            controller.navigate(R.id.action_homeFragment_to_proFragment);
+            Bundle args = new Bundle();
+            args.putString(PRODUCT_ID, PRODUCT_ID_VALUE);
+            args.putString(UI_CONTENT, AppUtil.readAppDescription(requireActivity(), R.raw.pro_mode));
+            controller.navigate(R.id.action_homeFragment_to_proFragment, args);
         } else {
             throw new IllegalStateException("Unexpected value: " + view.getId());
         }

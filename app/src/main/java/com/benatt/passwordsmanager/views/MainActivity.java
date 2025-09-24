@@ -7,6 +7,7 @@ import static com.benatt.passwordsmanager.BuildConfig.MIGRATING_VERSION;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
+import static com.benatt.passwordsmanager.utils.Constants.PRODUCT_ID_VALUE;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN;
 
 import android.app.KeyguardManager;
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                             .setMessage(getString(R.string.password_limit_reached))
                             .setPositiveButton("Learn More", (dialog, which) -> {
                                 Bundle bundle = new Bundle();
-                                bundle.putString(PRODUCT_ID, "com.benatt.passwordsmanager.cryptcode_root_access");
+                                bundle.putString(PRODUCT_ID, PRODUCT_ID_VALUE);
                                 bundle.putString(UI_CONTENT, AppUtil.readAppDescription(this, R.raw.pro_mode));
                                 navController.navigate(R.id.fragment_pro, bundle);
                             })

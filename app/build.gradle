@@ -8,6 +8,11 @@ plugins {
 def localProperties = new Properties()
 localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 
+def keyProperties = new Properties()
+
+def keyFile = rootProject.file("key.properties")
+keyProperties.load(new FileInputStream(keyFile))
+
 android {
     compileSdk 35
 
@@ -34,10 +39,12 @@ android {
 
     signingConfigs {
         release {
-            storeFile = file(localProperties.getProperty("storeFile"))
-            storePassword = localProperties.getProperty("storePassword")
-            keyAlias = localProperties.getProperty("keyAlias")
-            keyPassword = localProperties.getProperty("storePassword")
+            if (keyFile.exists()) {
+                storeFile file(keyProperties.getProperty("storeFile"))
+                storePassword keyProperties.getProperty("storePassword")
+                keyAlias keyProperties.getProperty("keyAlias")
+                keyPassword keyProperties.getProperty("storePassword")
+            }
         }
     }
 
@@ -45,7 +52,7 @@ android {
         release {
             minifyEnabled false
             debuggable true
-            signingConfig = signingConfigs.release
+            if (keyFile.exists()) signingConfig = signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
             buildConfigField "String", "ALIAS", "\"${localProperties["key_alias"] ?: ""}\""
