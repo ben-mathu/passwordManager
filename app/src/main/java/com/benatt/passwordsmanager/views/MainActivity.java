@@ -7,6 +7,7 @@ import static com.benatt.passwordsmanager.BuildConfig.MIGRATING_VERSION;
 import static com.benatt.passwordsmanager.utils.Constants.IS_DISCLAIMER_SHOWN;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORDS_MIGRATED;
 import static com.benatt.passwordsmanager.utils.Constants.PASSWORD_LIMIT;
+import static com.benatt.passwordsmanager.utils.Constants.PRODUCT_ID_VALUE;
 import static com.benatt.passwordsmanager.utils.Constants.SIGNED_IN;
 
 import android.app.KeyguardManager;
@@ -35,7 +36,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
-import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingResult;
 import com.benatt.core.billing.BillingCallback;
 import com.benatt.core.billing.BillingManager;
@@ -45,6 +45,7 @@ import com.benatt.passwordsmanager.R;
 import com.benatt.passwordsmanager.data.models.passwords.model.Password;
 import com.benatt.passwordsmanager.databinding.ActivityMainBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                             .setMessage(getString(R.string.password_limit_reached))
                             .setPositiveButton("Learn More", (dialog, which) -> {
                                 Bundle bundle = new Bundle();
-                                bundle.putString(PRODUCT_ID, "com.benatt.passwordsmanager.cryptcode_root_access");
+                                bundle.putString(PRODUCT_ID, PRODUCT_ID_VALUE);
                                 bundle.putString(UI_CONTENT, AppUtil.readAppDescription(this, R.raw.pro_mode));
                                 navController.navigate(R.id.fragment_pro, bundle);
                             })
@@ -203,17 +204,38 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        billingManager.checkPayment(new BillingCallback() {
-            @Override
-            public void onPurchasesUpdated(@NonNull BillingResult billingResult) {
-                AppUtil.handleBillingResult(preferences, billingResult);
-            }
+        billingManager.checkPayment(billingCallback);
+    }
 
-            @Override
-            public void productPurchased() {
-                preferences.edit().putBoolean(APP_PURCHASED, true).apply();
-            }
-        });
+    BillingCallback billingCallback = new BillingCallback() {
+        @Override
+        public void onPurchasesUpdated(@NonNull BillingResult billingResult) {
+            AppUtil.handleBillingResult(preferences, billingResult);
+        }
+
+        @Override
+        public void productPurchased() {
+            preferences.edit().putBoolean(APP_PURCHASED, true).apply();
+        }
+
+        @Override
+        public void notifyPendingPurchase() {
+            showSnackBarMessage("Your purchase is pending.");
+        }
+
+        @Override
+        public void onPurchaseFailed() {
+            showSnackBarMessage("Your purchase failed.");
+        }
+    };
+
+    private void showSnackBarMessage(String msg) {
+        if (getCurrentFocus() == null) return;
+        Snackbar snackbar = Snackbar.make(getCurrentFocus(),
+                msg, Snackbar.LENGTH_INDEFINITE);
+
+        snackbar.setAction("Dismiss", v -> snackbar.dismiss());
+        snackbar.show();
     }
 
     private final ActivityResultLauncher<Intent> keyGuardLauncher =

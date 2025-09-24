@@ -14,15 +14,15 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingResult;
 import com.benatt.core.R;
 import com.benatt.core.databinding.FragmentProModeBinding;
-import com.benatt.core.utils.AppUtil;
+import com.google.android.material.snackbar.Snackbar;
 
 import javax.inject.Inject;
 
@@ -42,8 +42,9 @@ public class ProModeFragment extends Fragment implements OnClickListener {
     private String htmlText;
 
     public static ProModeFragment newInstance(String productId, String text) {
-        if ((productId == null || productId == "") && text == null || text == "")
+        if ((productId == null || productId.isBlank()) && text == null || text.isBlank())
             throw new IllegalArgumentException("Product ID cannot be null");
+
         ProModeFragment proModeFragment = new ProModeFragment();
         Bundle bundle = new Bundle();
         bundle.putString(PRODUCT_ID, productId);
@@ -80,18 +81,49 @@ public class ProModeFragment extends Fragment implements OnClickListener {
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.btn_unlock_premium) {
-            billingManager.launchBillingFlow(requireActivity(), new BillingCallback() {
-                @Override
-                public void onPurchasesUpdated(@NonNull BillingResult billingResult) {
-                    handleBillingResult(billingResult);
-                }
-
-                @Override
-                public void productPurchased() {
-                    preferences.edit().putBoolean(APP_PURCHASED, true).apply();
-                }
-            }, productId);
+            billingManager.launchBillingFlow(requireActivity(), billingCallback, productId);
         }
+    }
+
+    BillingCallback billingCallback = new BillingCallback() {
+        @Override
+        public void onPurchasesUpdated(@NonNull BillingResult billingResult) {
+            handleBillingResult(billingResult);
+        }
+
+        @Override
+        public void productPurchased() {
+            preferences.edit().putBoolean(APP_PURCHASED, true).apply();
+        }
+
+        @Override
+        public void notifyPendingPurchase() {
+            showDialogMessage();
+        }
+
+        @Override
+        public void onPurchaseFailed() {
+            showSnackBarMessage();
+        }
+    };
+
+    private void showSnackBarMessage() {
+        if (requireActivity().getCurrentFocus() == null) return;
+        Snackbar snackbar = Snackbar.make(requireActivity().getCurrentFocus(),
+                "Your purchase failed.", Snackbar.LENGTH_INDEFINITE);
+
+        snackbar.setAction("Dismiss", v -> snackbar.dismiss());
+        snackbar.show();
+    }
+
+    private void showDialogMessage() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        builder.setMessage("You purchase is pending. Press Complete to continue.");
+        builder.setPositiveButton("Complete", (dialog, which) ->
+                billingManager.launchBillingFlow(requireActivity(), billingCallback, productId));
+
+        builder.setNegativeButton("Dismiss", (dialog, which) -> dialog.dismiss());
+        builder.show();
     }
 
     private void handleBillingResult(BillingResult billingResult) {

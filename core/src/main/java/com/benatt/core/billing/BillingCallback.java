@@ -8,4 +8,8 @@ public interface BillingCallback {
     void onPurchasesUpdated(@NotNull BillingResult result);
 
     void productPurchased();
+
+    void notifyPendingPurchase();
+
+    void onPurchaseFailed();
 }
