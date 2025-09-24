@@ -29,4 +29,5 @@ public class Constants {
     public static final String ID_TOKEN = "id_token";
 
     public static final int PASSWORD_LIMIT = 5;
+    public static final String PRODUCT_ID_VALUE = "com.benatt.passwordsmanager.cryptcode_root_access";
 }
