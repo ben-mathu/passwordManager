@@ -11,7 +11,7 @@ localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 def keyProperties = new Properties()
 
 def keyFile = rootProject.file("key.properties")
-keyProperties.load(new FileInputStream(keyFile))
+if (keyFile.exists()) keyProperties.load(new FileInputStream(keyFile))
 
 android {
     compileSdk 35
