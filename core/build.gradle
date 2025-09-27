@@ -67,7 +67,7 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                groupId = 'com.benatt.core'
+                groupId = 'com.benatt'
                 artifactId = 'core'
                 version = coreVersion
 
