@@ -80,7 +80,7 @@ afterEvaluate {
 
             maven {
                 name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/ben-mathu/passwordManager") // Replace with your username and repository name
+                url = uri("https://maven.pkg.github.com/ben-mathu/core") // Replace with your username and repository name
                 credentials {
                     username = localProperties["GPR_USER"]
                     password = localProperties["GPR_KEY"]
