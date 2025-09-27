@@ -39,7 +39,7 @@ jobs:
       - name: Build Release with Gradle
         run: ./gradlew core:assembleRelease
 
-      - name: Build Release with Gradle
+      - name: Publish Build
         run: ./gradlew publish
 
       - run: echo Build status report=${{ job.status }}
