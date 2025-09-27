@@ -29,7 +29,7 @@ jobs:
           gradle-home-cache-cleanup: true
 
       - name: Build Release with Gradle
-        run: ./gradlew core:clean core:assembleRelease
+        run: ./gradlew core:assembleRelease
 
       - name: Build Release with Gradle
         run: ./gradlew publish
